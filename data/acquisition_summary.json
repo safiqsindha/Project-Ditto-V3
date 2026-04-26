@@ -1,0 +1,28 @@
+{
+  "standard": {
+    "variant": "standard",
+    "dataset": "Lichess/standard-chess-games",
+    "snapshot_date": "2026-04-26 00:27 UTC",
+    "examined": 27689,
+    "collected": 2000,
+    "written": 2000,
+    "skipped_rating": 25689,
+    "sample_valid": 98,
+    "sample_invalid": 2,
+    "sample_validation_rate": 0.98,
+    "output_path": "data/chess_standard/games.jsonl"
+  },
+  "chess960": {
+    "variant": "chess960",
+    "dataset": "Lichess/chess960-chess-games",
+    "snapshot_date": "2026-04-26 00:28 UTC",
+    "examined": 17590,
+    "collected": 2000,
+    "written": 2000,
+    "skipped_rating": 15590,
+    "sample_valid": 100,
+    "sample_invalid": 0,
+    "sample_validation_rate": 1.0,
+    "output_path": "data/chess960/games.jsonl"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "american": {
+    "variant": "american",
+    "snapshot_date": "2026-04-26 01:43 UTC",
+    "total_loaded": 22621,
+    "after_length_filter": 22619,
+    "selected": 2000,
+    "written": 2000,
+    "output_path": "data/checkers_american/games.jsonl",
+    "gate_2b_ok": true
+  },
+  "international": {
+    "variant": "international",
+    "snapshot_date": "2026-04-26 01:43 UTC",
+    "total_loaded": 4157,
+    "after_length_filter": 3890,
+    "selected": 2000,
+    "written": 2000,
+    "output_path": "data/draughts_intl/games.jsonl",
+    "gate_2b_ok": true
+  }
+}

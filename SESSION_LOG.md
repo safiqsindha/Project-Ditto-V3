@@ -92,3 +92,91 @@ results/plots/.gitkeep
   - Record snapshot date
 - Confirm volumes sufficient for 1,200 chains/cell target
 - Gate 2a: both chess sources validated
+
+---
+
+## Session 2 — 2026-04-26
+
+**Tasks completed:**
+- Streamed and materialized standard chess from `Lichess/standard-chess-games` (HuggingFace)
+  - Rating filter: WhiteElo ≥ 1800 AND BlackElo ≥ 1800
+  - 2,000 games written to `data/chess_standard/games.jsonl`
+  - Snapshot: 2026-04-26 00:27 UTC
+  - Sample validation (python-chess): examined ~26k records to collect 2k rated games
+- Streamed and materialized Chess960 from `Lichess/chess960-chess-games` (HuggingFace)
+  - Same rating filter; FEN column preserved for Chess960 board setup
+  - 2,000 games written to `data/chess960/games.jsonl`
+  - Snapshot: 2026-04-26 00:28 UTC
+- Written `scripts/acquire_chess.py` — streaming + filter + PGN validation
+- Key fixes discovered:
+  - HuggingFace field name is `movetext` (not `Moves`)
+  - Records contain Python `datetime.date` objects; serialization requires custom `default=_jsonify`
+  - Chess960 PGN validation requires wrapping FEN header: `[FEN "..."]\n[Variant "Chess960"]\n\n{movetext}`
+  - Python 3.9 union type syntax `X | Y` fails at runtime; use `Union[X, Y]` from typing
+  - User site-packages path must be added to sys.path manually
+
+**Gate status:** Gate 2a PASSED — both chess sources validated, 2,000 games/cell
+
+**Files created/modified:**
+```
+data/chess_standard/games.jsonl (2000 lines)
+data/chess960/games.jsonl (2000 lines)
+data/acquisition_summary.json
+scripts/acquire_chess.py
+```
+
+**Blockers / open questions:** none
+
+**Next session (Session 3) planned tasks:**
+- Download American checkers (OCA 2.0 PDN) and International draughts (FMJD/wiegerw sources)
+- Materialize both to JSONL
+- Gate 2b: both checkers sources ≥ 1,500 raw games
+
+---
+
+## Session 3 — 2026-04-26
+
+**Tasks completed:**
+- Downloaded American checkers (OCA 2.0):
+  - Source: `data/checkers_american/raw/OCA_2.0.pdn` (22,621 games)
+  - 2,000 games written to `data/checkers_american/games.jsonl` (all valid)
+- Downloaded International draughts (10x10):
+  - Source discovery: wiegerw/pdn (484 games from succeed/fail folders), then Lidraughts API
+  - Lidraughts API discovery: `https://lidraughts.org/api/games/user/{username}?variant=standard`
+    and `/api/tournament/{id}/games` both return PDN with `[GameType "20"]`
+  - Key insight: Lidraughts is open-source fork of Lichess (https://github.com/RoepStoep/lidraughts)
+    → same API patterns as Lichess
+  - Downloaded from 3 working tournaments (392 games) + users roepstoep/special/Cacadosse/others
+  - Total unique international draughts games: 3,890 valid after dedup + length filter
+  - 2,000 games written to `data/draughts_intl/games.jsonl`
+- Written `scripts/acquire_checkers.py` — PDN parsing, dedup by Lidraughts game ID, length filter
+- Written `scripts/download_lidraughts_tournaments.py` and `scripts/download_lidraughts_users.py`
+
+**Gate status:** Gate 2b PASSED — both checkers sources well above 1,500 threshold
+  - checkers_american: 22,621 loaded, 22,619 valid ✅
+  - draughts_intl: 4,157 loaded (after dedup), 3,890 valid ✅
+
+**Files created/modified:**
+```
+data/checkers_american/games.jsonl (2000 lines)
+data/draughts_intl/games.jsonl (2000 lines)
+data/checkers_acquisition_summary.json
+data/draughts_intl/raw/lidraughts/*.pdn (tournament exports)
+data/draughts_intl/raw/lidraughts_users/*.pdn (user exports)
+scripts/acquire_checkers.py
+scripts/download_lidraughts_tournaments.py
+scripts/download_lidraughts_users.py
+```
+
+**Blockers / open questions:** none
+
+**Next session (Session 4) planned tasks:**
+- Implement `src/parser_chess.py`: python-chess based PGN parser
+  - parse_pgn_game(record, chess960=False) → TrajectoryLog
+  - parse_games_jsonl(path, chess960, limit) → list[TrajectoryLog]
+- Implement `src/parser_checkers.py`: draughts-library PDN parser
+  - parse_pdn_game(record, variant) → TrajectoryLog
+  - parse_games_jsonl(path, variant, limit) → list[TrajectoryLog]
+- Implement `src/aggregation.py`: windowing to 15–25 events
+- Unit tests for all three modules
+- Gate 3: parsers produce valid TrajectoryLog objects on ≥95% of sampled games
