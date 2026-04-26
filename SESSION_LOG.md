@@ -788,3 +788,104 @@ author needs to:
 - B) Launch Session 12 Sonnet now if author wants Phase 2 in parallel
   (faster overall but commits ~$85-280 before knowing Phase 1 statistics)
 - C) Hold and review
+
+---
+
+## v4 Cell 1 — Statistical methodology robustness — 2026-04-26
+
+**Branch**: `claude/v4-cell-1-statistical-robustness` (off main, NOT merged).
+
+**Study**: apply four statistical methodologies to v3's existing primary-config
+response data; characterize how robust the `reversed` outcome is to test choice.
+Pure code, no API calls.
+
+Pre-committed (does not change v3's pre-registered classification):
+1. Two-sample proportion z-test (v1's original)
+2. Paired McNemar, no actionable filter, Bonferroni divisor 4 (v2's corrected)
+3. Paired McNemar with actionable filter, Bonferroni divisor 4 (v3 pre-registered)
+   — pulled from results/phase1_v31_scored_full.json, NOT recomputed
+4. Same as 3 but no Bonferroni (sensitivity)
+
+### Results — primary config T=0.0/seed=42
+
+| Cell | M1 (no filter) | M2 (no filter) | M3 (with filter, Bonf) | M4 (with filter, no Bonf) |
+|---|---|---|---|---|
+| chess_standard | -0.043 | -0.043 | -0.187 | -0.187 |
+| chess960 | -0.038 | -0.038 | -0.231 | -0.231 |
+| **checkers_american** | **+0.039** | **+0.039** | **-0.115** | **-0.115** |
+| draughts_intl | -0.016 (n.s.) | -0.016 (Bonf n.s.) | -0.155 | -0.155 |
+
+Within each cell, M1 vs M2 produce identical point estimates (just different
+test assumptions); M3 vs M4 also identical (Bonferroni vs raw). The cleavage
+is the **both-actionable filter**, not the test choice or pair structure.
+
+### Per-cell pattern classification (per pre-committed framework)
+
+- **chess_standard, chess960**: Robust reversed (all 4 methodologies negative
+  + significant, magnitude amplified ~4-6× by filter)
+- **checkers_american**: **Methodology choice flips direction** (positive
+  unfiltered, strongly negative filtered). Pre-committed framework calls this
+  "serious finding."
+- **draughts_intl**: Methodology flips significance (consistent direction
+  but only v3 pre-reg reaches significance; v1's loose test fails p < 0.05;
+  v2's mid-strictness loses significance after Bonferroni)
+
+### What's driving the methodology sensitivity
+
+Within the 4 tests, the both-actionable filter dominates. Comparing
+unfiltered → filtered:
+- chess_standard: 4.3× amplification (same sign)
+- chess960:       6.0× amplification
+- checkers:       SIGN FLIP + 2.9× magnitude (+0.039 → -0.115)
+- draughts_intl:  9.7× amplification
+
+The filter selects the regime where Phase A's verified mechanisms operate
+(resource_side dominance + backoff differential). For 3 of 4 cells, the
+filter amplifies an already-reversed effect; for checkers_american, the
+filter creates the reversal from an underlying positive signal.
+
+### What this analysis can and cannot conclude
+
+CAN conclude:
+- v3's `reversed` classification is partially methodology-dependent
+- 2 of 4 cells: robust to test choice
+- 1 of 4 cells: filter flips direction (checkers_american goes from +0.04 to -0.12)
+- 1 of 4 cells: filter+Bonferroni flips significance (draughts_intl)
+- Phase A's verified mechanisms (filter selects the regime they operate in)
+  are independently corroborated
+
+CANNOT conclude:
+- v3's pre-registered classification is wrong (pre-commitment: it stands)
+- Which methodology is "correct" — different tests have different
+  power/assumptions/philosophies
+- For checkers_american: which is "more representative" of the data,
+  the unfiltered +0.04 or the filtered -0.12
+
+### Recommendation
+
+**This analysis warrants Myriam's input before further v4 cells.** The
+checkers_american sign-flip changes the framing of the v3 result.
+
+Three paths to consider with co-author:
+1. Treat checkers as weak positive signal in unfiltered pool (would require
+   pre-registering a v4 cell without the actionable filter)
+2. Treat unfiltered result as statistical artifact, keep v3 `reversed`
+   classification
+3. Run additional v4 cells with prompt/model variations to test whether
+   methodology sensitivity persists across conditions
+
+### Files
+
+```
+src/v4_scorer_robustness.py (new — 4 methodology functions)
+scripts/v4_robustness_analysis.py (new — runs all 4 on existing data)
+results/v4/cell_1_robustness.json (full per-cell × per-methodology stats)
+results/v4/cell_1_robustness_table.md (markdown summary)
+results/v4/cell_1_interpretation.md (full interpretation document)
+SESSION_LOG.md (this entry)
+```
+
+**Branch state**: `claude/v4-cell-1-statistical-robustness` — NOT merged.
+The existing v3 scorer is unchanged; `T-code-game-v1.0-frozen` tag
+unaffected; v3's pre-registered classification is `reversed` per the
+pre-registered methodology, which this analysis does NOT revise.
