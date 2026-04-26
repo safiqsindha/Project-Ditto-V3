@@ -239,6 +239,18 @@ def _compile_alternation(vocab: frozenset[str]) -> re.Pattern:
 
 _HARD_CHECK_REGEX: re.Pattern = _compile_alternation(_DEFAULT_LEAKAGE_VOCAB)
 
+# Response-only vocab: drops the v2 programming vocabulary because many Python
+# keywords overlap with common English words ("with", "pass", "else", "while",
+# "print", "class", "return", "raise", "yield", "set", "list", "function",
+# "method", "find", ...). Those produce false positives on free-form model
+# responses (English natural language), confounding the experiment-relevant
+# game-domain leakage signal.
+#
+# The chain-content leakage check (`check_leakage`) keeps the full vocab —
+# chains are programmatically rendered, so any Python keyword in chain output
+# would be a real bug. Different threat models, different vocabs.
+_RESPONSE_LEAKAGE_REGEX: re.Pattern = _compile_alternation(_GLOSSARY_HARD_VOCAB)
+
 
 def check_leakage(
     rendered: str,
@@ -276,6 +288,29 @@ def check_leakage(
         if re.search(pattern, rendered, flags=re.IGNORECASE):
             leaked.append(term)
     return leaked
+
+
+def check_response_leakage(response: str) -> list[str]:
+    """
+    Game-domain-only leakage scan, intended for free-form model responses.
+
+    Differs from `check_leakage()` in vocabulary, not algorithm: same
+    word-boundary regex, but uses the glossary's HARD_CHECK_VOCAB (game
+    domain only) and skips the v2 programming vocabulary that produces
+    false positives on English text.
+
+    Use case: scanning Anthropic Messages API responses for real
+    chess/checkers vocabulary leakage from the model. Free-form English
+    naturally contains words like "with", "else", "while", "print" that
+    are Python keywords in `_PROGRAMMING_VOCAB` — those false positives
+    would dominate any real signal at Phase 1 scale (57k+ responses).
+
+    For chain CONTENT leakage (rendered constraint chains, where Python
+    keywords would indicate a real rendering bug) keep using `check_leakage()`.
+
+    Returns sorted list of game-domain terms found, lowercase.
+    """
+    return sorted(set(m.lower() for m in _RESPONSE_LEAKAGE_REGEX.findall(response)))
 
 
 def check_leakage_substring(
