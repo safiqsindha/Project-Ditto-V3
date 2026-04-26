@@ -1,0 +1,46 @@
+{
+  "policy": "leave-one-out (subtract base chain contribution at lookup)",
+  "framing": "post-hoc methodology investigation; NOT a Phase A retry",
+  "rows": [
+    {
+      "cell": "chess_standard",
+      "pre_registered": -0.1871,
+      "original_overall": -0.1871,
+      "original_loo_overall": -0.1661,
+      "original_loo_same_level": -0.0777,
+      "downweighted_overall": -0.0675,
+      "downweighted_loo_overall": -0.0543,
+      "downweighted_loo_same_level": 0.0047
+    },
+    {
+      "cell": "chess960",
+      "pre_registered": -0.2312,
+      "original_overall": -0.2312,
+      "original_loo_overall": -0.2064,
+      "original_loo_same_level": -0.1019,
+      "downweighted_overall": -0.0464,
+      "downweighted_loo_overall": -0.0296,
+      "downweighted_loo_same_level": 0.0066
+    },
+    {
+      "cell": "checkers_american",
+      "pre_registered": -0.115,
+      "original_overall": -0.115,
+      "original_loo_overall": -0.1083,
+      "original_loo_same_level": -0.045,
+      "downweighted_overall": -0.0087,
+      "downweighted_loo_overall": -0.0033,
+      "downweighted_loo_same_level": 0.0451
+    },
+    {
+      "cell": "draughts_intl",
+      "pre_registered": -0.1553,
+      "original_overall": -0.1553,
+      "original_loo_overall": -0.15,
+      "original_loo_same_level": -0.0668,
+      "downweighted_overall": -0.0724,
+      "downweighted_loo_overall": -0.0672,
+      "downweighted_loo_same_level": 0.0114
+    }
+  ]
+}
