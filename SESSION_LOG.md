@@ -788,3 +788,198 @@ author needs to:
 - B) Launch Session 12 Sonnet now if author wants Phase 2 in parallel
   (faster overall but commits ~$85-280 before knowing Phase 1 statistics)
 - C) Hold and review
+
+---
+
+## Phase A — post-hoc verification of v3 reversed outcome — 2026-04-26
+
+**Branch**: `claude/phase-a-verification` (NOT merged into main; outputs are
+parallel to the pre-registered analysis. The frozen
+`T-code-game-v1.0-frozen` tag remains untouched.)
+
+**Purpose**: test whether the mechanistic diagnosis of v3's `reversed`
+outcome is correct, before committing API budget to Phase B.
+
+Diagnosis under test:
+- **Mechanism 1 (shuffle adjacency × echo bias)**: real chains have
+  target=last_shown adjacency at 0.33% (T-code structure prevents it);
+  shuffled chains have it at 13% (random permutation). Verified
+  contribution: ~1pp.
+- **Mechanism 2 (resource-friendly state regime)**: T-code's pos%4==3 rule
+  forces ResourceBudget; reference distribution top-3 is dominated by
+  resource_side_*; model collapses to resource_side_* on shuffled prefixes
+  (76%) more than real prefixes (54%); reference rewards "guess the common
+  entity," shuffled wins.
+
+**Pre-committed success criterion** (set BEFORE execution; not adjusted
+based on findings):
+- chess_standard Layer 1 actionable gap under downweighted reference:
+  - ≥ +0.02 → Phase A SUCCEEDED
+  - between −0.02 and +0.02 → AMBIGUOUS
+  - ≤ −0.02 → Phase A FAILED
+
+### Step A1: anti-adjacency shuffler (`src/shuffler_anti_adjacency.py`)
+
+Generated 14,400 anti-adjacency-constrained shuffled chains (3 seeds × 4
+cells × 1,200 base chains). 0% retry-cap exclusions across all cells —
+the anti-adjacency constraint is easily satisfied.
+
+### Step A2: overlap analysis with existing model responses
+
+Hash-overlap with existing v3 shuffles is **86–91% across cells**, not
+near-zero as expected. Verified this is the natural consequence of
+~87% of v3 shuffles already satisfying anti-adjacency on first
+permutation; same-seed RNG produces identical permutations when the
+constraint is met. The 13–21% that differ are exactly the chains that
+v3's shuffler placed in the artifact regime. **Not a bug — the prompt's
+"near-zero" expectation was a miscalibration.**
+
+### Step A3: downweighted reference (`src/reference_downweighted.py`)
+
+Policy: per-entity, cell-level cap. For each `resource_side_*` entity,
+keep it in top-3 of only the top-N state sigs (where N = floor(median of
+non-resource frequencies)); demote it from the rest. Recompute top-3
+where any entity was demoted.
+
+Per-cell parameters:
+| Cell | median_cap | top3_changed | sigs_dropped_empty | sigs_remaining |
+|---|---|---|---|---|
+| chess_standard | 7 | 29 | 60 | 116 / 176 |
+| chess960 | 10 | 30 | 44 | 130 / 174 |
+| checkers_american | 10 | 22 | 23 | 95 / 118 |
+| draughts_intl | 13 | 20 | 29 | 110 / 139 |
+
+**Option B chosen for empty-top-3 sigs** (per author guidance):
+- A — keep sigs with original counts (preserves coverage; under-tests diagnosis on the worst-affected sigs)
+- **B — drop sigs entirely; rely on backoff** (selected; tests diagnosis aggressively)
+- C — modify cap policy
+
+Rationale for B: Option A would specifically NOT test the diagnosis on
+the sigs where Mechanism 2 is most concentrated — those that ONLY contain
+`resource_side_*` entities. Dropping them and forcing backoff is the
+right test of whether downweighting reaches the experimental goal.
+
+### Step A4: rescore against downweighted reference (Option B)
+
+Used existing `src/scorer.py` logic; downweighted reference replaces
+the original. Bonferroni divisor = 4 (Phase A treated as separate
+analysis from pre-registered family).
+
+Backoff-level breakdown (primary config T=0.0/seed=42):
+
+| Cell | Real L0 | Real L1 | Real L2+ | Real mean | Shuf L0 | Shuf L1 | Shuf L2+ | Shuf mean |
+|---|---|---|---|---|---|---|---|---|
+| chess_standard | 92.08% | 4.83% | 3.08% | 0.115 | 64.31% | 19.72% | 15.97% | 0.620 |
+| chess960 | 94.58% | 2.92% | 2.50% | 0.079 | 68.17% | 19.08% | 12.75% | 0.512 |
+| checkers_american | 97.00% | 0.75% | 2.25% | 0.057 | 65.72% | 19.47% | 14.81% | 0.509 |
+| draughts_intl | 95.67% | 2.50% | 1.83% | 0.062 | 69.08% | 23.11% | 7.81% | 0.387 |
+
+**Backoff differential: 26.4–31.3 percentage points (level-0 fraction) across
+all four cells. Exceeds the 20pp threshold flagged in spec.**
+
+Real chains find level-0 matches ~95% of the time; shuffled chains only
+~67%. They are scored against different reference granularities — real
+gets fine-grained sig-level top-3, shuffled gets broader cell-level top-3
+via backoff. This is a **confound**: the comparison is not strictly
+like-for-like at the lookup level.
+
+### Step A5: decomposition table
+
+| Cell | Col1: Pre-registered | Col2: Trivial-filtered | Col3: Downweighted (Option B) |
+|---|---|---|---|
+| chess_standard | -0.1871 | -0.1828 | **-0.0675** |
+| chess960 | -0.2312 | -0.2272 | **-0.0464** |
+| checkers_american | -0.1150 | -0.1121 | **-0.0087** |
+| draughts_intl | -0.1553 | -0.1589 | **-0.0724** |
+
+Trivial-filtering effect: ~0.4 percentage points (small).
+Downweighting effect: 4.6–22.0 percentage points (large).
+
+**checkers_american (col3 = -0.009) lands in the ambiguous range** for
+chess_standard's success criterion if applied to that cell — but the
+criterion is fixed on chess_standard.
+
+### Step A6: success criterion application
+
+**chess_standard col3 gap = -0.0675**
+
+Per pre-committed criterion:
+- ≥ +0.02 → SUCCEEDED
+- between −0.02 and +0.02 → AMBIGUOUS
+- ≤ −0.02 → **FAILED** ← this is the result
+
+**PHASE A FAILED on the strict criterion.**
+
+### Confound flagged
+
+Backoff differential (Real ≈95% L0 vs Shuf ≈67% L0) >20pp on all cells.
+The downweighted reference forces shuffled chains to backoff
+substantially more than real chains. This means:
+- Real chains: scored against narrow, sig-specific top-3 distributions
+- Shuffled chains: scored against broader, cell-level top-3 distributions
+  (which are often dominated by what's MOST common across the cell)
+
+Whether this is itself a problem or itself the answer depends on
+interpretation:
+- **Bug interpretation**: the metric is comparing apples to oranges
+  because the lookup levels differ
+- **Feature interpretation**: this is what fair scoring against a
+  shrunken reference produces; shuffled chains are inherently harder
+  to match because their state-sigs are less informative
+
+### Findings synthesis
+
+1. **Diagnosis is partially verified**: Mechanism 2 (resource-side
+   dominance) accounts for **64–80% of the inversion** in chess_standard
+   (gap movement from -0.187 to -0.068, an 11.96pp improvement out of
+   the 18.71pp distance to zero). The remaining inversion is real and
+   not yet explained.
+2. **Diagnosis is incomplete**: chess_standard, chess960, draughts_intl
+   all remain solidly negative even after downweighting. Only
+   checkers_american (gap -0.009) crosses into ambiguous territory.
+3. **Backoff confound is real**: 27–31pp level-0 differential between
+   real and shuffled means the comparison is not strictly like-for-like
+   under Option B. This may explain the residual negative gap.
+
+### Recommendation
+
+**Do NOT proceed to Phase B yet.** The criterion failed by a margin
+(-0.068 vs +0.02 threshold = 0.088 distance); checkers_american's
+ambiguous result and the substantial downweighting effect (12-22 pp
+movement) suggest the diagnosis is on the right track but not complete.
+
+Options for the author + co-author:
+1. **Re-analyze**: investigate the remaining inversion. The backoff
+   differential confound is the next hypothesis to test — possibly via
+   a stratified analysis (separate the gap by backoff level used).
+2. **Accept Phase A's negative result and report**: the resource-side
+   downweighting is a genuine effect (12-22pp movement), but cannot
+   fully account for the inversion. The pre-registered `reversed`
+   finding stands, with the additional context that Mechanism 2 is
+   real but partial.
+3. **Try Option C of A3** (modify cap policy to a less destructive
+   form): would address the backoff confound by keeping more sigs in
+   the level-0 distribution. Could produce a different gap result.
+
+### Files
+
+```
+src/shuffler_anti_adjacency.py     (new)
+src/reference_downweighted.py      (new)
+scripts/phase_a_a1_shuffle.py      (new)
+scripts/phase_a_overlap_analysis.py (new)
+scripts/phase_a_rescore.py         (new)
+scripts/phase_a_decomposition.py   (new)
+chains/shuffled_anti_adjacency/{cell}/*.jsonl  (new — 14,400 files; gitignored)
+data/reference_{cell}_downweighted.pkl  (new — 4 files; gitignored)
+results/phase_a/a1_shuffle_summary.json
+results/phase_a/a2_overlap.json
+results/phase_a/a3_downweight_params.json
+results/phase_a/a4_rescored.json
+results/phase_a/decomposition_table.json
+results/phase_a/decomposition_table.md
+SESSION_LOG.md (this entry)
+```
+
+**Branch state**: `claude/phase-a-verification` — NOT merged. main and
+the `T-code-game-v1.0-frozen` tag are unaffected.

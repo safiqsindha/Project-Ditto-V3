@@ -1,0 +1,93 @@
+{
+  "phase": "phase_a_a5",
+  "rows": [
+    {
+      "cell": "chess_standard",
+      "col1_pre_registered": {
+        "gap": -0.1871,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1288,
+        "outcome_tier": "reversed"
+      },
+      "col2_trivial_filtered": {
+        "n_pairs_actionable": 1258,
+        "gap": -0.1828,
+        "p_value": 0.0
+      },
+      "col3_downweighted": {
+        "gap": -0.0675,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1288,
+        "outcome_tier": "reversed"
+      }
+    },
+    {
+      "cell": "chess960",
+      "col1_pre_registered": {
+        "gap": -0.2312,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1250,
+        "outcome_tier": "reversed"
+      },
+      "col2_trivial_filtered": {
+        "n_pairs_actionable": 1215,
+        "gap": -0.2272,
+        "p_value": 0.0
+      },
+      "col3_downweighted": {
+        "gap": -0.0464,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1250,
+        "outcome_tier": "reversed"
+      }
+    },
+    {
+      "cell": "checkers_american",
+      "col1_pre_registered": {
+        "gap": -0.115,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1496,
+        "outcome_tier": "reversed"
+      },
+      "col2_trivial_filtered": {
+        "n_pairs_actionable": 1436,
+        "gap": -0.1121,
+        "p_value": 0.0
+      },
+      "col3_downweighted": {
+        "gap": -0.0087,
+        "p_value_bon": 1.0,
+        "n_pairs_actionable": 1496,
+        "outcome_tier": "reversed"
+      }
+    },
+    {
+      "cell": "draughts_intl",
+      "col1_pre_registered": {
+        "gap": -0.1553,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1533,
+        "outcome_tier": "reversed"
+      },
+      "col2_trivial_filtered": {
+        "n_pairs_actionable": 1460,
+        "gap": -0.1589,
+        "p_value": 0.0
+      },
+      "col3_downweighted": {
+        "gap": -0.0724,
+        "p_value_bon": 0.0,
+        "n_pairs_actionable": 1533,
+        "outcome_tier": "reversed"
+      }
+    }
+  ],
+  "criterion": {
+    "primary_cell": "chess_standard",
+    "metric": "Layer 1 actionable gap (col3_downweighted)",
+    "threshold_succeed": 0.02,
+    "threshold_fail": -0.02,
+    "result": "FAILED",
+    "chess_standard_col3_gap": -0.0675
+  }
+}

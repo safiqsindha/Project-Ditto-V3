@@ -1,0 +1,120 @@
+{
+  "per_cell": {
+    "chess_standard": {
+      "total_new_shuffled": 3600,
+      "chain_id_overlap": 0,
+      "chain_id_overlap_pct": 0.0,
+      "hash_overlap": 3127,
+      "hash_overlap_pct": 86.8611,
+      "hash_collision_examples": [
+        {
+          "new_chain_id": "chess_standard_real_0796_shuffled_7919_aa",
+          "existing_chain_id": "chess_standard_real_0796_shuffled_7919"
+        },
+        {
+          "new_chain_id": "chess_standard_real_0570_shuffled_7919_aa",
+          "existing_chain_id": "chess_standard_real_0570_shuffled_7919"
+        },
+        {
+          "new_chain_id": "chess_standard_real_0872_shuffled_42_aa",
+          "existing_chain_id": "chess_standard_real_0872_shuffled_42"
+        },
+        {
+          "new_chain_id": "chess_standard_real_0751_shuffled_1337_aa",
+          "existing_chain_id": "chess_standard_real_0751_shuffled_1337"
+        },
+        {
+          "new_chain_id": "chess_standard_real_0622_shuffled_1337_aa",
+          "existing_chain_id": "chess_standard_real_0622_shuffled_1337"
+        }
+      ]
+    },
+    "chess960": {
+      "total_new_shuffled": 3600,
+      "chain_id_overlap": 0,
+      "chain_id_overlap_pct": 0.0,
+      "hash_overlap": 3112,
+      "hash_overlap_pct": 86.4444,
+      "hash_collision_examples": [
+        {
+          "new_chain_id": "chess960_real_0749_shuffled_42_aa",
+          "existing_chain_id": "chess960_real_0749_shuffled_42"
+        },
+        {
+          "new_chain_id": "chess960_real_0336_shuffled_1337_aa",
+          "existing_chain_id": "chess960_real_0336_shuffled_1337"
+        },
+        {
+          "new_chain_id": "chess960_real_0965_shuffled_7919_aa",
+          "existing_chain_id": "chess960_real_0965_shuffled_7919"
+        },
+        {
+          "new_chain_id": "chess960_real_0245_shuffled_1337_aa",
+          "existing_chain_id": "chess960_real_0245_shuffled_1337"
+        },
+        {
+          "new_chain_id": "chess960_real_0459_shuffled_1337_aa",
+          "existing_chain_id": "chess960_real_0459_shuffled_1337"
+        }
+      ]
+    },
+    "checkers_american": {
+      "total_new_shuffled": 3600,
+      "chain_id_overlap": 0,
+      "chain_id_overlap_pct": 0.0,
+      "hash_overlap": 3272,
+      "hash_overlap_pct": 90.8889,
+      "hash_collision_examples": [
+        {
+          "new_chain_id": "checkers_american_real_0989_shuffled_42_aa",
+          "existing_chain_id": "checkers_american_real_0989_shuffled_42"
+        },
+        {
+          "new_chain_id": "checkers_american_real_0884_shuffled_1337_aa",
+          "existing_chain_id": "checkers_american_real_0486_shuffled_1337"
+        },
+        {
+          "new_chain_id": "checkers_american_real_0031_shuffled_7919_aa",
+          "existing_chain_id": "checkers_american_real_0031_shuffled_7919"
+        },
+        {
+          "new_chain_id": "checkers_american_real_0799_shuffled_1337_aa",
+          "existing_chain_id": "checkers_american_real_0799_shuffled_1337"
+        },
+        {
+          "new_chain_id": "checkers_american_real_0210_shuffled_1337_aa",
+          "existing_chain_id": "checkers_american_real_0210_shuffled_1337"
+        }
+      ]
+    },
+    "draughts_intl": {
+      "total_new_shuffled": 3600,
+      "chain_id_overlap": 0,
+      "chain_id_overlap_pct": 0.0,
+      "hash_overlap": 2863,
+      "hash_overlap_pct": 79.5278,
+      "hash_collision_examples": [
+        {
+          "new_chain_id": "draughts_intl_real_0161_shuffled_1337_aa",
+          "existing_chain_id": "draughts_intl_real_0161_shuffled_1337"
+        },
+        {
+          "new_chain_id": "draughts_intl_real_1085_shuffled_1337_aa",
+          "existing_chain_id": "draughts_intl_real_1085_shuffled_1337"
+        },
+        {
+          "new_chain_id": "draughts_intl_real_0012_shuffled_1337_aa",
+          "existing_chain_id": "draughts_intl_real_0012_shuffled_1337"
+        },
+        {
+          "new_chain_id": "draughts_intl_real_0387_shuffled_1337_aa",
+          "existing_chain_id": "draughts_intl_real_0387_shuffled_1337"
+        },
+        {
+          "new_chain_id": "draughts_intl_real_0991_shuffled_42_aa",
+          "existing_chain_id": "draughts_intl_real_0991_shuffled_42"
+        }
+      ]
+    }
+  }
+}

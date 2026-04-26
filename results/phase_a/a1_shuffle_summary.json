@@ -1,0 +1,36 @@
+{
+  "per_cell": {
+    "chess_standard": {
+      "total_real": 1200,
+      "shuffled_generated": 3600,
+      "max_possible": 3600,
+      "retry_cap_exclusions": 0,
+      "retry_cap_pct": 0.0,
+      "exclusions_sample": []
+    },
+    "chess960": {
+      "total_real": 1200,
+      "shuffled_generated": 3600,
+      "max_possible": 3600,
+      "retry_cap_exclusions": 0,
+      "retry_cap_pct": 0.0,
+      "exclusions_sample": []
+    },
+    "checkers_american": {
+      "total_real": 1200,
+      "shuffled_generated": 3600,
+      "max_possible": 3600,
+      "retry_cap_exclusions": 0,
+      "retry_cap_pct": 0.0,
+      "exclusions_sample": []
+    },
+    "draughts_intl": {
+      "total_real": 1200,
+      "shuffled_generated": 3600,
+      "max_possible": 3600,
+      "retry_cap_exclusions": 0,
+      "retry_cap_pct": 0.0,
+      "exclusions_sample": []
+    }
+  }
+}
