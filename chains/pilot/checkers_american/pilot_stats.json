@@ -2,9 +2,9 @@
   "cell": "checkers_american",
   "variant": "checkers_american",
   "games_scanned": 300,
-  "windows_scanned": 57,
-  "valid_windows": 50,
-  "pass_rate": 0.8771929824561403,
+  "windows_scanned": 889,
+  "valid_windows": 754,
+  "pass_rate": 0.8481439820022497,
   "leakage_failures": 0,
   "chains_collected": 50,
   "type_distribution": {
@@ -24,6 +24,16 @@
     "InformationState": 1.66
   },
   "soft_leakage_warnings": {},
+  "invalid_windows": 135,
+  "validity_failure_breakdown": {
+    "length_below_min": 0,
+    "length_above_max": 0,
+    "sgt_below_min": 0,
+    "ta_below_min": 0,
+    "rb_below_min": 135,
+    "timestamp_order": 0,
+    "consecutive_duplicate": 0
+  },
   "gate6_checks": {
     "hard_leakage_100pct": true,
     "soft_leakage_100pct": true,

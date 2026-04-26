@@ -5,9 +5,9 @@
       "cell": "chess_standard",
       "variant": "chess_standard",
       "games_scanned": 300,
-      "windows_scanned": 57,
-      "valid_windows": 50,
-      "pass_rate": 0.8771929824561403,
+      "windows_scanned": 1383,
+      "valid_windows": 1317,
+      "pass_rate": 0.9522776572668112,
       "leakage_failures": 0,
       "chains_collected": 50,
       "type_distribution": {
@@ -27,6 +27,16 @@
         "InformationState": 1.74
       },
       "soft_leakage_warnings": {},
+      "invalid_windows": 66,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 66,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
       "gate6_checks": {
         "hard_leakage_100pct": true,
         "soft_leakage_100pct": true,
@@ -39,9 +49,9 @@
       "cell": "chess960",
       "variant": "chess960",
       "games_scanned": 300,
-      "windows_scanned": 52,
-      "valid_windows": 50,
-      "pass_rate": 0.9615384615384616,
+      "windows_scanned": 1411,
+      "valid_windows": 1335,
+      "pass_rate": 0.9461374911410347,
       "leakage_failures": 0,
       "chains_collected": 50,
       "type_distribution": {
@@ -61,6 +71,16 @@
         "ToolAvailability": 3.02
       },
       "soft_leakage_warnings": {},
+      "invalid_windows": 76,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 76,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
       "gate6_checks": {
         "hard_leakage_100pct": true,
         "soft_leakage_100pct": true,
@@ -73,9 +93,9 @@
       "cell": "checkers_american",
       "variant": "checkers_american",
       "games_scanned": 300,
-      "windows_scanned": 57,
-      "valid_windows": 50,
-      "pass_rate": 0.8771929824561403,
+      "windows_scanned": 889,
+      "valid_windows": 754,
+      "pass_rate": 0.8481439820022497,
       "leakage_failures": 0,
       "chains_collected": 50,
       "type_distribution": {
@@ -95,6 +115,16 @@
         "InformationState": 1.66
       },
       "soft_leakage_warnings": {},
+      "invalid_windows": 135,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 135,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
       "gate6_checks": {
         "hard_leakage_100pct": true,
         "soft_leakage_100pct": true,
@@ -107,9 +137,9 @@
       "cell": "draughts_intl",
       "variant": "draughts_intl",
       "games_scanned": 300,
-      "windows_scanned": 53,
-      "valid_windows": 50,
-      "pass_rate": 0.9433962264150944,
+      "windows_scanned": 1838,
+      "valid_windows": 1716,
+      "pass_rate": 0.9336235038084875,
       "leakage_failures": 0,
       "chains_collected": 50,
       "type_distribution": {
@@ -129,6 +159,16 @@
         "InformationState": 1.96
       },
       "soft_leakage_warnings": {},
+      "invalid_windows": 122,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 122,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
       "gate6_checks": {
         "hard_leakage_100pct": true,
         "soft_leakage_100pct": true,

@@ -27,7 +27,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, '/Users/safiqsindha/Library/Python/3.9/lib/python/site-packages')
 
 from src.aggregation import extract_all_windows
-from src.filter import is_valid_chain
+from src.filter import VALIDITY_REASONS, is_valid_chain, validity_failures
 from src.renderer import (
     check_leakage,
     check_leakage_substring,
@@ -115,17 +115,29 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
     leakage_failures = 0
     soft_leakage_warnings: Counter = Counter()  # term → count of chains where it appeared
     type_counter: Counter = Counter()
+    # Validity diagnostic: bucket invalid windows by failure reason.
+    # A single window can fail multiple criteria; each failure is counted
+    # once per window. Total values may exceed (all_windows - valid_windows).
+    failure_reasons: Counter = Counter()
+    # Also track "windows that failed at all" so we can compute
+    # "fraction of failed windows that included reason X".
+    invalid_window_count = 0
 
+    # Scan ALL windows from ALL loaded trajectories for diagnostics.
+    # Only the first PILOT_TARGET valid+leakage-clean chains are saved as the
+    # pilot output, but stats (failure breakdown, leakage warnings, type
+    # distribution) cover every window seen — gives a much larger denominator
+    # than the previous early-stop behavior (~57 windows per cell → ~hundreds).
     for traj in trajs:
-        if len(chains_collected) >= PILOT_TARGET:
-            break
         windows = extract_all_windows(traj)
         for window_events in windows:
-            if len(chains_collected) >= PILOT_TARGET:
-                break
             all_windows += 1
             constraints = translate_trajectory(window_events, variant=variant)
-            if not is_valid_chain(constraints):
+            failures = validity_failures(constraints)
+            if failures:
+                invalid_window_count += 1
+                for reason in failures:
+                    failure_reasons[reason] += 1
                 continue
             valid_windows += 1
 
@@ -148,7 +160,14 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
                 for term in soft_leaked:
                     soft_leakage_warnings[term] += 1
 
-            # Collect type distribution
+            # Stats (type distribution + chain save) cover only the first
+            # PILOT_TARGET chains so per-chain averages stay comparable to
+            # earlier reports. The validity-failure / leakage stats above
+            # cover ALL windows for diagnostic strength.
+            if len(chains_collected) >= PILOT_TARGET:
+                continue
+
+            # Collect type distribution (saved chains only)
             for c in constraints:
                 type_counter[type(c).__name__] += 1
 
@@ -169,6 +188,19 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
 
     print(f"  Windows scanned:        {all_windows}")
     print(f"  Valid windows:          {valid_windows}  ({pass_rate*100:.1f}%)")
+    print(f"  Invalid windows:        {invalid_window_count}")
+    if failure_reasons:
+        print(f"  Validity failure breakdown (% of invalid windows):")
+        # Print in the canonical order (VALIDITY_REASONS) so the table reads
+        # left-to-right same way every time, even if some reasons are 0.
+        for reason in VALIDITY_REASONS:
+            cnt = failure_reasons.get(reason, 0)
+            if cnt == 0:
+                continue
+            pct = (cnt / invalid_window_count * 100) if invalid_window_count else 0
+            print(f"    {reason:<24s}: {cnt:4d}  ({pct:5.1f}%)")
+    else:
+        print(f"  Validity failure breakdown: (no invalid windows)")
     print(f"  HARD leakage failures:  {leakage_failures}")
     if soft_leakage_warnings:
         print(f"  SOFT leakage warnings (substring; not fatal):")
@@ -215,6 +247,10 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
         "type_distribution": dict(type_counter),
         "type_per_chain": {k: v / collected for k, v in type_counter.items()} if collected > 0 else {},
         "soft_leakage_warnings": dict(soft_leakage_warnings),
+        "invalid_windows": invalid_window_count,
+        "validity_failure_breakdown": {
+            reason: failure_reasons.get(reason, 0) for reason in VALIDITY_REASONS
+        },
         "gate6_checks": {
             "hard_leakage_100pct": leakage_failures == 0,
             "soft_leakage_100pct": len(soft_leakage_warnings) == 0,
