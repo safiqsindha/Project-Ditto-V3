@@ -590,3 +590,93 @@ SESSION_LOG.md (this entry)
 - Session 11: Gate 8 review — Phase 1 results decide whether Phase 2 runs
 - Session 12: Phase 2 Sonnet conditional (~$200–280)
 - Session 13: scoring + analysis
+
+---
+
+## Session 9 — 2026-04-25
+
+**Tasks completed:**
+- API key dropped by author into `.env`; verified loaded (108 chars, sk-ant-* prefix)
+- Format-check (3 dry-run prompts) — clean, no leakage in previews, prompt
+  template renders correctly with `phase_endgame_priority` etc.
+- Wet smoke (3 Haiku calls, ~$0.001 spent) — all 3 succeeded with valid action
+  labels (support_advance, advance_together, defend_zone). Surfaced two runner
+  bugs (committed as fixes).
+- Wrote `scripts/run_dryrun.py` orchestrator: 8 sequential batch invocations
+  (4 cells × {real, shuffled}), 50 chains × 3 configs each.
+- Ran full dry-run sweep: **1,200 API calls, all succeeded**, 0 errors,
+  ~$0.40 spent, wall time 23.2 min.
+
+**Bug fixes during Session 9:**
+1. `src/runner.py` — blinded path was `output_dir.parent / "blinded"` →
+   wrote to `results/raw/blinded/`. Fixed to `parent.parent` →
+   `results/blinded/` per project layout (commit 830d912).
+2. `src/runner.py` — `_CUSTOM_ID_SEP = "||"` violated Anthropic Batches
+   pattern `^[a-zA-Z0-9_-]{1,64}$`; first sweep failed pre-submission with
+   HTTP 400 on all 8 batches (zero spend). Changed to `"-"` (commit fab4221).
+   Worst-case custom_id length: sonnet-1337-checkers_american_real_1199_shuffled_7919
+   = 53 chars, under 64.
+
+**Gate status:** Session 9 has no formal gate. Pipeline ready for Phase 1.
+  - 1,200 / 1,200 calls succeeded across 4 cells × {real, shuffled}
+  - Output schema correct (chain_id, cutoff_k, model, source, response,
+    seed, temperature, prompt_version) in all raw files
+  - Blinded mirrors landed in `results/blinded/` (400 unique chain×cutoff pairs)
+  - Per-batch wall time ranged 61s (fast queue) to 362s (busier queue);
+    all 8 batches completed in `processing_status=ended`
+
+**Response distribution (1,200 calls; Haiku):**
+- 42 unique responses; 13 singletons
+- Top 6 responses are all from `_COORD_ACTIONS` and account for 92.5%
+- Modal: maintain_formation (35%) — high concentration but not degenerate
+- 51 responses (4.2%) used "switch_to_phase_X" patterns echoing the
+  prompt's example template
+- Real vs shuffled distribution divergence: 2nd-most-common response flips
+  between conditions (advance_together for real / restrict_mobility for
+  shuffled) — candidate experimental signal the scorer will quantify
+
+**Leakage findings on responses:**
+- HARD: 2 cases (0.17%) — both FALSE POSITIVES. Same chain produced verbose
+  English text containing "with" ("Cannot proceed with standard adaptation").
+  "with" is in our v2 `_PROGRAMMING_VOCAB` as a Python keyword. The leakage
+  list was designed to scan chain CONTENT (where it has been 100% clean across
+  all 19,200 chains), not model RESPONSES. Recommendation: don't gate on
+  response leakage — track as diagnostic only.
+- SOFT: 6 cases (0.5%) — REAL but minor. Two specific chains
+  (chess960_real_0010, draughts_intl_real_0032) produced "switch_to_endgame_*"
+  responses across all 3 configs. The model is decoding `phase_endgame_priority`
+  and stripping the `phase_` abstraction prefix. This is the failure mode we
+  discussed when we exempted `phase_X` compounds — predicted, low rate, not a
+  methodology blocker.
+
+**Files created/modified:**
+```
+scripts/run_dryrun.py (new, committed fab4221)
+src/runner.py (custom_id separator fix, committed fab4221)
+src/runner.py (blinded path fix, committed 830d912)
+results/raw/dryrun/{cell}/*.json (1,200 raw response files — gitignored)
+results/blinded/*.json (400 blinded mirrors — gitignored)
+results/dryrun_summary.json (per-invocation stats — committed)
+results/dryrun_log.txt (full stdout from the run — committed)
+```
+
+**Blockers / open questions:**
+- The v2 `_PROGRAMMING_VOCAB` contains words that overlap with English
+  ("with", "pass", "else", "while", "print", "class", "return"). For v3 these
+  should be removed since we don't run code; they only fire on free-form
+  model responses, never on chains. Track as deferred cleanup item — does NOT
+  affect Phase 1 since chains are clean and we're not gating on responses.
+- The "switch_to_endgame_*" pattern from Haiku suggests our prompt example
+  `'e.g., "use piece_A" or "switch to phase_B"'` may be inducing it.
+  Switching to a more neutral example (e.g., `'a token like piece_A or transition_B'`)
+  could help post-freeze. Not blocking — log for v4 prompt design.
+
+**Next session (Session 10) planned tasks:**
+- Phase 1 full Haiku evaluation: 4,800 real + 14,400 shuffled = 19,200 chains
+  × 3 EVAL_CONFIGS = 57,600 API calls
+- Estimated cost: $60–120 (Haiku, batch-discounted)
+- Estimated wall time: 4–24 hours (Anthropic batch queue dependent)
+- Need orchestrator extension to handle the full chain set (current dryrun
+  script uses `n=50` cap)
+- Output: `results/raw/phase1/{cell}/*.json` (57,600 files) +
+  `results/blinded/*.json` (19,200 unique chain×cutoff pairs)

@@ -1,0 +1,74 @@
+{
+  "invocations": [
+    {
+      "cell": "chess_standard",
+      "kind": "real",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 362.4
+    },
+    {
+      "cell": "chess_standard",
+      "kind": "shuffled",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 121.7
+    },
+    {
+      "cell": "chess960",
+      "kind": "real",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 61.2
+    },
+    {
+      "cell": "chess960",
+      "kind": "shuffled",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 242.0
+    },
+    {
+      "cell": "checkers_american",
+      "kind": "real",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 121.5
+    },
+    {
+      "cell": "checkers_american",
+      "kind": "shuffled",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 121.7
+    },
+    {
+      "cell": "draughts_intl",
+      "kind": "real",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 122.1
+    },
+    {
+      "cell": "draughts_intl",
+      "kind": "shuffled",
+      "submitted": 150,
+      "completed": 150,
+      "errors": 0,
+      "elapsed_seconds": 242.0
+    }
+  ],
+  "totals": {
+    "submitted": 1200,
+    "completed": 1200,
+    "errors": 0,
+    "wall_time_seconds": 1394.6
+  }
+}
