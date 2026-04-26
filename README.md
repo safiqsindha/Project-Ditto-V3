@@ -192,7 +192,6 @@ Python 3.10+ recommended.
 
 ## Authors
 
-- **Safiq Sindha** — lead (Microsoft Azure Hardware PM, independent research)
-- **Myriam** — co-author (Columbia University, systems engineering; Boeing FT)
-
+- **Safiq Sindha** — lead 
+- **Myriam Khalil**- Co-Author
 *Pre-registration v1.0 — April 25, 2026.*
