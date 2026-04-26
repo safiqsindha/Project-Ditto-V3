@@ -247,3 +247,51 @@ tests/test_parsers.py
   - OptimizationCriterion from move type inference
 - Verify T-code outputs pass both-actionable filter (≥1 SubGoalTransition, ≥1 ToolAvailability, ≥1 CoordinationDependency, ≥1 OptimizationCriterion)
 - Run 50-game pilot (Session 6 prep)
+
+---
+
+## Session 5 — 2026-04-25
+
+**Tasks completed:**
+- Implemented `src/translation.py` T-code (full six-type constraint mapping):
+  - `translate_event(event, context)` → single Constraint, using priority-ordered dispatch
+  - `translate_trajectory(events, variant)` → list[Constraint], one per event, with state tracking
+  - Six constraint types fully mapped:
+    - ResourceBudget: material counts normalised (chess /39, checkers /initial_pieces); periodic slot at pos%4==3 (highest-priority periodic slot)
+    - ToolAvailability: UNAVAILABLE on capture; AVAILABLE on non-capture move; periodic fallback at pos≥window//2 if no TA yet
+    - SubGoalTransition: phase change (opening→middlegame→endgame); promotion; tactical turning point (capture after quiet); periodic slot at pos%8==0 if SGT count below target
+    - InformationState: constant COMPLETE (non-actionable, lowest priority)
+    - CoordinationDependency: check events; high-value pieces; balance fallback
+    - OptimizationCriterion: inferred from move type (material_gain, king_safety, mobility)
+  - Priority order (prevents starvation): phase-change SGT > promotion SGT > tactical SGT > periodic SGT > periodic RB > capture TA > late TA fallback > check CD > IS periodic > high-piece CD > balance CD/OC
+- Validated filter pass rates on 100-game sample per cell:
+  - chess_standard: 94.5% (409/433 windows pass ≥15 events + ≥1 SGT + ≥1 TA + ≥3 RB)
+  - chess960: 94.5% (446/472 windows pass)
+  - checkers_american: 86.6% (271/313 windows pass)
+  - draughts_intl: 93.5% (594/635 windows pass)
+- Ran full pipeline test (parse → aggregate → translate → filter → shuffle → render):
+  - All shuffled chains (seeds 42, 1337, 7919) pass renderer leakage check
+  - No domain vocabulary in rendered output
+- Key bug fixes during implementation:
+  - ResourceBudget starvation: moved periodic RB to pos%4==3 with HIGHER priority than capture handler → pass rates rose from ~66% to 94%+
+  - SGT coverage: added tactical-opening SGT (capture after quiet move) and periodic SGT (pos%8==0) → pass rates rose from ~30% to ~66% before RB fix
+  - Renderer test bug: must pass Constraint objects (not dataclasses.asdict() dicts) to render_chain()
+  - Shuffler test bug: chain dict requires chain_id and match_id keys
+
+**Gate status:** Session 5 has no formal gate — filter pass rates are informational targets (≥80% target in BUILD_PLAN.md). All four cells exceed 80%. Gate 6 pilot (Session 6) is next.
+
+**Files created/modified:**
+```
+src/translation.py (full T-code implementation — was stub)
+SESSION_LOG.md (this entry)
+```
+
+**Blockers / open questions:** none
+
+**Next session (Session 6) planned tasks:**
+- Generate 50 pilot chains per cell (all 4 cells) using T-code
+- Inspect constraint type distribution across 50 chains per cell
+- Leakage check: 100% of rendered chains pass renderer.leakage_check()
+- Spot-check 3–5 rendered chains per cell for qualitative correctness
+- Freeze T-code: git tag `T-code-game-v1.0-frozen` on translation.py + aggregation.py + renderer.py
+- Gate 6: pilot inspection passes (no leakage, ≥80% chain validity, plausible constraint distributions)
