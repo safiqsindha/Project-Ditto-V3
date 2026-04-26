@@ -61,6 +61,13 @@ _CUSTOM_ID_SEP = "-"
 
 _BATCH_POLL_INTERVAL = 60
 
+# Anthropic Messages Batches: any of these means the batch will not progress
+# further. We must break out of the polling loop on ANY of them — not just
+# "ended" — otherwise a canceled or expired batch would loop forever.
+_BATCH_TERMINAL_STATUSES: frozenset[str] = frozenset({
+    "ended", "canceled", "expired", "failed",
+})
+
 _MAX_BATCH_SIZE = 10_000
 
 
@@ -140,6 +147,25 @@ def _save_results(
         json.dump(blinded, fh, indent=2)
 
 
+def _extract_response_text(content_blocks) -> str:
+    """Extract response text robustly across SDK content-block formats.
+
+    The Anthropic SDK can return content as objects (with .type / .text
+    attributes) or as dicts (with 'type' / 'text' keys), depending on
+    SDK version and call path (batch results vs sync). We accept either,
+    and skip non-text blocks defensively.
+    """
+    for block in content_blocks or []:
+        # SDK object form
+        block_type = getattr(block, "type", None)
+        if block_type == "text":
+            return getattr(block, "text", "").strip()
+        # Dict form
+        if isinstance(block, dict) and block.get("type") == "text":
+            return block.get("text", "").strip()
+    return ""
+
+
 def _call_api_with_backoff(
     client: anthropic.Anthropic,
     model_id: str,
@@ -161,7 +187,7 @@ def _call_api_with_backoff(
                 system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": user_message}],
             )
-            return response.content[0].text.strip()
+            return _extract_response_text(response.content)
         except anthropic.RateLimitError as e:
             last_exc = e
             print(f"[runner] rate limit (attempt {attempt + 1}): {e}")
@@ -333,11 +359,16 @@ def run_batch(
         batch_ids.append(batch.id)
         print(f"[runner] submitted batch {batch.id} ({len(chunk)} requests)")
 
-    # Poll until all batches complete
+    # Poll until all batches reach a terminal state. Break on ANY terminal
+    # status, not just "ended" — otherwise a canceled/expired/failed batch
+    # would loop forever.
     for batch_id in batch_ids:
         while True:
             batch = client.messages.batches.retrieve(batch_id)
-            if batch.processing_status == "ended":
+            if batch.processing_status in _BATCH_TERMINAL_STATUSES:
+                if batch.processing_status != "ended":
+                    print(f"[runner] WARN: batch {batch_id} terminated as "
+                          f"{batch.processing_status!r}; some results may be missing")
                 break
             print(f"[runner] batch {batch_id} status={batch.processing_status} — polling...")
             time.sleep(_BATCH_POLL_INTERVAL)
@@ -347,9 +378,16 @@ def run_batch(
     for batch_id in batch_ids:
         for result in client.messages.batches.results(batch_id):
             custom_id = result.custom_id
-            meta = chain_meta.get(custom_id, {})
+            meta = chain_meta.get(custom_id)
+            # Defensive: if Anthropic returns an unrecognized custom_id, log
+            # and skip rather than KeyError on meta["chain_id"]. Should not
+            # happen in practice but keeps the loop alive on edge cases.
+            if meta is None:
+                print(f"[runner] WARN: unrecognized custom_id {custom_id!r}; skipping")
+                stats["errors"] += 1
+                continue
             if result.result.type == "succeeded":
-                response_text = result.result.message.content[0].text.strip()
+                response_text = _extract_response_text(result.result.message.content)
                 _save_results(
                     meta["chain_id"], model_name, meta["seed"], source,
                     meta["cutoff_k"], meta["temperature"], response_text, output_dir

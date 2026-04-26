@@ -68,9 +68,41 @@ def _verify_chain_inventory() -> dict[tuple[str, str], int]:
     return counts
 
 
+def _archive_existing_output() -> Path | None:
+    """Move any existing results/raw/phase1/ to a timestamped archive dir.
+
+    Returns the archive path if archive happened, None otherwise.
+    Prevents partial overwrite if a re-run is interrupted: existing output
+    is preserved instead of being merged file-by-file with new output.
+    """
+    if not OUT_DIR.exists() or not any(OUT_DIR.iterdir()):
+        return None
+    archive_dir = OUT_DIR.parent / f"phase1_archive_{int(time.time())}"
+    OUT_DIR.rename(archive_dir)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    return archive_dir
+
+
 def main() -> int:
+    import argparse
+    parser = argparse.ArgumentParser(prog="scripts.run_phase1")
+    parser.add_argument(
+        "--archive", action="store_true",
+        help="Move existing results/raw/phase1/ to a timestamped archive dir "
+             "before launching. Safer for re-runs (prevents partial overwrite).",
+    )
+    args = parser.parse_args()
+
     # ---- Pre-flight inventory ---------------------------------------------
     print("Session 10 — Phase 1 Haiku full evaluation\n")
+
+    if args.archive:
+        archive = _archive_existing_output()
+        if archive:
+            print(f"[archive] previous output → {archive.relative_to(PROJECT_ROOT)}\n")
+        else:
+            print("[archive] no existing output to archive\n")
+
     print("Verifying chain inventory ...")
     counts = _verify_chain_inventory()
     total_calls = sum(counts.values()) * len(EVAL_CONFIGS)

@@ -98,16 +98,27 @@ def extract_state_signature(
       2: (current_phase, last_move_type)
       3: (current_phase,)
     """
+    # Defensive default: return a shape consistent with the requested level.
+    # Use "phase_opening" (with prefix) to match the actual data format —
+    # bare "opening" would fragment state-sig keys for chains where no SGT
+    # is in the prefix window vs. chains where one is.
     if not constraints or cutoff_k <= 0:
-        return ("opening",)
+        if backoff_level == 0:
+            return ("phase_opening", "unknown", 4, "unknown")
+        if backoff_level == 1:
+            return ("phase_opening", "unknown", 4)
+        if backoff_level == 2:
+            return ("phase_opening", "unknown")
+        return ("phase_opening",)
 
     window = constraints[:cutoff_k]
 
-    # current_phase: last SubGoalTransition.to_phase seen
-    current_phase = "opening"
+    # current_phase: last SubGoalTransition.to_phase seen.
+    # Default "phase_opening" (matches data format from chain generation).
+    current_phase = "phase_opening"
     for c in reversed(window):
         if c.get("type") == "SubGoalTransition":
-            current_phase = c.get("to_phase", "opening")
+            current_phase = c.get("to_phase", "phase_opening")
             break
 
     # last_move_type: type of the constraint at the cutoff position
@@ -210,10 +221,15 @@ class ReferenceDistribution:
 
         for chain in chains:
             constraints = chain.get("constraints", [])
+            if not constraints:
+                continue
+            # Defensive cutoff handling: clamp to valid range. Fallback to
+            # length // 2 (matches chain generation default) if missing.
+            cutoff_k = chain.get("cutoff_k") or max(1, len(constraints) // 2)
+            if cutoff_k <= 0 or cutoff_k > len(constraints):
+                continue
             focal_action = chain.get("focal_action", "")
-            cutoff_k = chain.get("cutoff_k", len(constraints) // 2)
-
-            if not focal_action or not constraints:
+            if not focal_action:
                 continue
 
             sig = extract_state_signature(constraints, cutoff_k, backoff_level=0)

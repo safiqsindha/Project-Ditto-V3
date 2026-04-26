@@ -119,6 +119,24 @@ def paired_ttest(
     if n != len(shuffled_scores):
         return {"error": "list length mismatch"}
 
+    # Defensive: scipy.stats.ttest_rel returns NaN when both arms are
+    # identical (divide-by-zero on std-dev). Detect and return a clean
+    # zero result instead of letting NaN propagate into significance flags.
+    if all(r == s for r, s in zip(real_scores, shuffled_scores)):
+        mean_val = round(float(np.mean(real_scores)), 4)
+        return {
+            "n_pairs": n,
+            "real_mean": mean_val,
+            "shuffled_mean": mean_val,
+            "gap": 0.0,
+            "mean_diff": 0.0,
+            "t_stat": 0.0,
+            "p_value": 1.0,
+            "significant_05": False,
+            "test": "paired_ttest",
+            "note": "identical arms; zero variance",
+        }
+
     t, p = stats.ttest_rel(real_scores, shuffled_scores)
     diffs = [r - s for r, s in zip(real_scores, shuffled_scores)]
 
@@ -136,6 +154,10 @@ def paired_ttest(
 
 
 def apply_bonferroni(p_value: float, n_tests: int) -> float:
+    # Defensive: clamp at 1 to avoid spurious p=0 when no tests are configured
+    # (e.g., empty per_cell or future auto-divisor mode). A divisor of 0 would
+    # otherwise produce min(1.0, p × 0) = 0.0 — falsely "significant".
+    n_tests = max(1, n_tests)
     return min(1.0, p_value * n_tests)
 
 
@@ -188,8 +210,16 @@ def score_layer2(
     Legality: 1.0 if response matches a known action label format, 0.0 otherwise.
     Optimality: fraction of top-k actions the response matches.
     Coupled score: legality × optimality.
+
+    Returns coupled=None on invalid cutoff so the aggregation can skip such
+    pairs (mirrors score_layer1) — prevents sentinel-zero pollution of the
+    paired t-test means.
     """
     constraints = chain.get("constraints", [])
+    if not constraints or cutoff_k <= 0 or cutoff_k > len(constraints):
+        return {"legality": None, "optimality": None, "coupled": None,
+                "error": "invalid cutoff"}
+
     top_k_actions, _ = dist.lookup_with_backoff(constraints, cutoff_k, k=TOP_K)
     normalized_response = normalize_action(model_response)
 
@@ -311,25 +341,37 @@ def score_all(
     if not results:
         return {"error": "no results found", "n_results": 0}
 
-    # Load chains (real and shuffled)
+    # Load chains (real and shuffled). Use exact filename match — the previous
+    # glob pattern f"{chain_id}*.jsonl" was too permissive and silently picked
+    # the first match if multiple files matched (e.g., chess_standard_real_0001
+    # could match chess_standard_real_00010 if such a chain existed).
     def _load_chain_dict(chain_id: str, source: str, base_dir: Path) -> dict | None:
-        for p in (base_dir / source).glob(f"{chain_id}*.jsonl"):
-            try:
-                with open(p) as f:
-                    return json.loads(f.readline().strip())
-            except Exception:
-                pass
-        return None
+        path = (base_dir / source) / f"{chain_id}.jsonl"
+        if not path.exists():
+            return None
+        try:
+            with path.open() as f:
+                return json.loads(f.readline().strip())
+        except Exception:
+            return None
 
-    # Accumulate per-cell paired data
-    # Key: (model, source, config_key)
-    per_cell: dict[tuple, dict[str, list]] = defaultdict(
-        lambda: {
-            "real_l1": [], "shuffled_l1": [],
-            "real_l1_actionable": [], "shuffled_l1_actionable": [],
-            "real_l2": [], "shuffled_l2": [],
-        }
-    )
+    # ----- Phase 1: score each result individually -----------------------
+    # per_result: alignment_key -> scored result with l1/l2/condition/etc.
+    # alignment_key = (base_chain_id, model, source, config_key, condition,
+    #                  shuffle_seed_suffix)
+    # where condition ∈ {"real", "shuffled"} and shuffle_seed_suffix is "" for
+    # real, or e.g. "_shuffled_42" for shuffled. The (real, shuffled-N) pair
+    # share base_chain_id + model + source + config_key.
+
+    # For each real chain at each eval_config, we expect exactly 1 real result
+    # and 3 shuffled results (one per shuffle seed). McNemar's needs paired
+    # binary outcomes — we expand the real outcome to match the 3 shuffled
+    # partners (per SPEC §Pair alignment, alignment is by base_chain_id + model
+    # + eval_seed; the 3 shuffle variants each form their own pair against
+    # the same real outcome).
+
+    real_scored: dict[tuple, dict] = {}                     # (base, model, src, cfg) -> scored
+    shuf_scored: dict[tuple, list[dict]] = defaultdict(list)  # (base, model, src, cfg) -> [scored,…]
 
     skipped = 0
     for r in results:
@@ -347,6 +389,7 @@ def score_all(
 
         dist = dists[source]
         is_shuffled = "_shuffled_" in chain_id
+        base_id = chain_id.split("_shuffled_")[0] if is_shuffled else chain_id
 
         # Load corresponding chain
         load_dir = chains_shuffled_dir if is_shuffled else chains_real_dir
@@ -359,26 +402,75 @@ def score_all(
         l2 = score_layer2(response, chain, cutoff_k, dist)
 
         config_key = f"T{temperature}_seed{seed}"
-        gt_type = l1.get("constraint_type", "")
-        condition = "shuffled" if is_shuffled else "real"
-
-        cell_key = (model, source, config_key)
-        bucket = per_cell[cell_key]
-
-        if l1["top_k_match"] is not None:
-            bucket[f"{condition}_l1"].append(l1["top_k_match"])
-
-            # Both-actionable filter (SPEC §Both-actionable filter)
-            # A pair enters actionable analysis iff BOTH chains' cutoff constraints are actionable.
-            # This check is against this individual chain's cutoff type;
-            # pair-level filtering happens in the paired analysis below.
-            if gt_type in ACTIONABLE_TYPES:
-                bucket[f"{condition}_l1_actionable"].append(l1["top_k_match"])
-
-        bucket[f"{condition}_l2"].append(l2["coupled"])
+        align_key = (base_id, model, source, config_key)
+        scored_record = {
+            "l1_match": l1["top_k_match"],
+            "l1_constraint_type": l1.get("constraint_type", ""),
+            "l2_coupled": l2["coupled"],
+        }
+        if is_shuffled:
+            shuf_scored[align_key].append(scored_record)
+        else:
+            real_scored[align_key] = scored_record
 
     if skipped:
         print(f"[scorer] skipped {skipped} results (missing chain or distribution)")
+
+    # ----- Phase 2: build paired buckets per cell × config -----------------
+    # For each (model, source, config_key), iterate over base chains; for
+    # each base chain pair the real outcome with EACH of its shuffled partners.
+    # This produces 3 pairs per base chain (one per shuffle seed) per
+    # cell × config × model.
+    per_cell: dict[tuple, dict[str, list]] = defaultdict(
+        lambda: {
+            "real_l1": [], "shuffled_l1": [],
+            "real_l1_actionable": [], "shuffled_l1_actionable": [],
+            "real_l2": [], "shuffled_l2": [],
+            "missing_real": 0,
+            "missing_shuffled": 0,
+            "n_base_chains": 0,
+        }
+    )
+
+    all_align_keys = set(real_scored.keys()) | set(shuf_scored.keys())
+    for align_key in all_align_keys:
+        base_id, model, source, config_key = align_key
+        cell_key = (model, source, config_key)
+        bucket = per_cell[cell_key]
+
+        real = real_scored.get(align_key)
+        shufs = shuf_scored.get(align_key, [])
+
+        if real is None:
+            bucket["missing_real"] += len(shufs) if shufs else 1
+            continue
+        if not shufs:
+            bucket["missing_shuffled"] += 1
+            continue
+
+        bucket["n_base_chains"] += 1
+        for shuf in shufs:
+            # Layer 1 — both-actionable filter applied at PAIR level:
+            # include in actionable subset iff BOTH real and shuffled cutoff
+            # constraints are in ACTIONABLE_TYPES (SPEC §Both-actionable filter).
+            both_actionable = (
+                real["l1_constraint_type"] in ACTIONABLE_TYPES
+                and shuf["l1_constraint_type"] in ACTIONABLE_TYPES
+            )
+
+            if real["l1_match"] is not None and shuf["l1_match"] is not None:
+                bucket["real_l1"].append(real["l1_match"])
+                bucket["shuffled_l1"].append(shuf["l1_match"])
+                if both_actionable:
+                    bucket["real_l1_actionable"].append(real["l1_match"])
+                    bucket["shuffled_l1_actionable"].append(shuf["l1_match"])
+
+            # Layer 2 (continuous): only append when both sides have valid scores
+            # (score_layer2 returns None for invalid cutoffs to avoid sentinel-zero
+            # pollution of the paired t-test).
+            if real["l2_coupled"] is not None and shuf["l2_coupled"] is not None:
+                bucket["real_l2"].append(real["l2_coupled"])
+                bucket["shuffled_l2"].append(shuf["l2_coupled"])
 
     # Build paired McNemar results per cell
     cell_results: dict[str, dict] = {}
@@ -405,6 +497,13 @@ def score_all(
             },
             "layer2": l2_test,
             "outcome_tier": classify_outcome_tier(gap, pval_bonferroni),
+            "diagnostics": {
+                "n_base_chains": bucket["n_base_chains"],
+                "n_pairs_total": len(bucket["real_l1"]),
+                "n_pairs_actionable": len(bucket["real_l1_actionable"]),
+                "missing_real": bucket["missing_real"],
+                "missing_shuffled": bucket["missing_shuffled"],
+            },
         }
 
     return {
