@@ -23,8 +23,10 @@
     "ToolAvailability": 2.82,
     "InformationState": 1.74
   },
+  "soft_leakage_warnings": {},
   "gate6_checks": {
-    "leakage_100pct": true,
+    "hard_leakage_100pct": true,
+    "soft_leakage_100pct": true,
     "pass_rate_gte_80pct": true,
     "all_6_types_present": true,
     "collected_50_chains": true

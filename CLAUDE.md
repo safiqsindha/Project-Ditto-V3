@@ -91,36 +91,59 @@ filtered + bucketed list[Constraint]
 | `src/observability.py` | ✅ Adapted | Entity labels for game domain |
 | `src/reference.py` | ✅ Adapted | active_pair = (current_phase, last_move_type) |
 | `src/prompt_builder.py` | ✅ Adapted | PROMPT_VERSION = "v3.0-game" |
-| `src/renderer.py` | ✅ Adapted | Extended leakage vocab (chess + checkers) |
-| `src/translation.py` | 🔲 STUB | Dataclasses defined; translate_* raises NotImplementedError |
-| `src/aggregation.py` | 🔲 STUB | Session 5 |
-| `src/parser_chess.py` | 🔲 STUB | Session 4 |
-| `src/parser_checkers.py` | 🔲 STUB | Session 4 |
+| `src/renderer.py` | ✅ Hardened (S6) | Imports leakage_glossary; hard + soft checks |
+| `src/leakage_glossary.py` | ✅ New (S6) | 158 entries, single source of truth for leakage |
+| `src/translation.py` | ✅ Implemented (S5/S6) | Abstract labels per glossary; pilot 87–96% |
+| `src/aggregation.py` | ✅ Implemented (S5) | Phase-anchored windowing |
+| `src/parser_chess.py` | ✅ Implemented (S4) | python-chess; standard + 960 |
+| `src/parser_checkers.py` | ✅ Implemented (S4) | draughts library; american + standard |
 
-**T-code freeze**: `src/translation.py`, `src/aggregation.py`, `src/renderer.py` freeze at
-git tag `T-code-game-v1.0-frozen` after Session 6 pilot inspection passes. No modifications
-after that tag without a new pre-registration.
+**T-code freeze**: `src/translation.py`, `src/aggregation.py`, `src/renderer.py`,
+`src/leakage_glossary.py` freeze at git tag `T-code-game-v1.0-frozen`. The tag
+was first cut after the initial Session 6 pilot, then advanced after the same
+session's leakage hardening pass (rename of embedded-word labels + addition of
+soft check). No modifications after the current tag without a new pre-registration.
 
 ---
 
 ## Abstract label conventions (game domain)
+
+> **Session 6 hardening note**: Original prescriptions in this table embedded
+> chess/checkers vocabulary (`material_white`, `king_safety`, `pawn_chain_B`,
+> `battery_A`, `back_row_C`). Python's `\b` word-boundary regex treats `_` as
+> a word character, so the leakage check **silently passed** these labels even
+> though a human reader sees the embedded chess words. The labels below have
+> been replaced with truly-abstract forms verified against
+> `src/leakage_glossary.py` under both hard (word-boundary) and soft
+> (relaxed-boundary substring) checks.
 
 | Concept | Abstract label |
 |---------|---------------|
 | Chess/checkers pieces | `piece_A`, `piece_B`, ... `piece_P` |
 | Sides | `side_1`, `side_2` |
 | Game phases | `phase_opening`, `phase_middlegame`, `phase_endgame` |
-| Squares (chess) | `sq_0` ... `sq_63` (a1=0, h8=63) |
-| Squares (checkers American) | `sq_1` ... `sq_32` |
-| Squares (draughts intl) | `sq_1` ... `sq_50` |
-| Material resources | `material_white`, `material_black` |
-| Tempo resources | `tempo_remaining` |
-| Coordination patterns | `battery_A`, `pawn_chain_B`, `back_row_C` |
-| Optimization objectives | `material_gain`, `king_safety`, `mobility` |
+| Squares (chess) | `sq_0` ... `sq_63` (internal only — never rendered) |
+| Squares (checkers American) | `sq_1` ... `sq_32` (internal only) |
+| Squares (draughts intl) | `sq_1` ... `sq_50` (internal only) |
+| Resource amounts (material/progress) | `resource_side_1`, `resource_side_2`, `progress_remaining` |
+| Coordination patterns | `coordination_A`, `coordination_B`, `chain_A/B/C`, `formation_A/B`, `pressure_A/B` |
+| Coordination actions | `maintain_formation`, `advance_together`, `defend_zone`, `central_focus`, `restrict_mobility`, `support_advance` |
+| Optimization objectives | `resource_gain`, `objective_safety`, `mobility`, `structural`, `progress_advantage`, `structure` |
+| Phase-priority weight shifts | `phase_opening_priority`, `phase_middlegame_priority`, `phase_endgame_priority` |
+| SubGoalTransition triggers | `resource_exchange`, `structure_shift`, `piece_activation`, `subgoal_achieved`, `structural_transition`, `opportunity_shift` |
+| Perspective labels (chain header) | `sequential_process_A/B/C/D` (cell-derived; never the cell name) |
 
-**Never use**: pawn, knight, bishop, rook, queen, king, castle, check, fork, pin, skewer,
-jump, capture, crown, draughts, checkers, chess, algebraic notation, file letters, rank
-numbers (in context), or any term in the renderer leakage vocabulary.
+**Leakage source of truth**: `src/leakage_glossary.py` (158 entries, 23
+categories). The renderer derives its hard- and soft-check vocabularies from
+that module — do not maintain a separate list here. To add a new term, edit
+the glossary with provenance and re-run the pilot leakage scan.
+
+**Never use** (non-exhaustive — see glossary for full list): pawn, knight,
+bishop, rook, queen, king, man, men, castle, check, mate, fork, pin, skewer,
+jump, capture, crown, battery, fianchetto, gambit, draughts, checkers, chess,
+chess960, white, black, file/rank labels, algebraic notation, pgn, pdn, fen,
+material, tempo, positional, tactical, opening/middlegame/endgame as bare
+words.
 
 ---
 

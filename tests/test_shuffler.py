@@ -31,7 +31,7 @@ def _make_chain(chain_id: str = "chess_standard_00001", n: int = 5) -> dict:
         {
             "type": "ResourceBudget",
             "timestamp": 1,
-            "resource": "material_white",
+            "resource": "resource_side_1",
             "amount": 1.0,
             "decay": "monotone_decrease",
             "recover_in": None,
@@ -41,7 +41,7 @@ def _make_chain(chain_id: str = "chess_standard_00001", n: int = 5) -> dict:
             "timestamp": 2,
             "from_phase": "phase_opening",
             "to_phase": "phase_middlegame",
-            "trigger": "material_exchange",
+            "trigger": "resource_exchange",
         },
         {
             "type": "InformationState",
@@ -53,7 +53,7 @@ def _make_chain(chain_id: str = "chess_standard_00001", n: int = 5) -> dict:
         {
             "type": "ResourceBudget",
             "timestamp": 3,
-            "resource": "tempo_remaining",
+            "resource": "progress_remaining",
             "amount": 0.9,
             "decay": "monotone_decrease",
             "recover_in": None,
@@ -74,7 +74,7 @@ def _make_large_chain(n: int = 12) -> dict:
         {
             "type": "ResourceBudget",
             "timestamp": i + 1,
-            "resource": "material_white",
+            "resource": "resource_side_1",
             "amount": round(1.0 - i * 0.05, 3),
             "decay": "monotone_decrease",
             "recover_in": None,

@@ -28,7 +28,12 @@ sys.path.insert(0, '/Users/safiqsindha/Library/Python/3.9/lib/python/site-packag
 
 from src.aggregation import extract_all_windows
 from src.filter import is_valid_chain
-from src.renderer import check_leakage, render_trajectory_chain, _CELL_TO_PERSPECTIVE
+from src.renderer import (
+    check_leakage,
+    check_leakage_substring,
+    render_trajectory_chain,
+    _CELL_TO_PERSPECTIVE,
+)
 from src.translation import translate_trajectory
 
 # ---------------------------------------------------------------------------
@@ -108,6 +113,7 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
     valid_windows = 0
     chains_collected = []
     leakage_failures = 0
+    soft_leakage_warnings: Counter = Counter()  # term → count of chains where it appeared
     type_counter: Counter = Counter()
 
     for traj in trajs:
@@ -123,18 +129,24 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
                 continue
             valid_windows += 1
 
-            # Leakage check (use abstract perspective label via render_trajectory_chain)
+            # HARD leakage check (word-boundary regex; raises in render_trajectory_chain)
             try:
                 rendered = render_trajectory_chain(constraints, source=variant)
                 leaked = check_leakage(rendered)
                 if leaked:
                     leakage_failures += 1
-                    print(f"  ⚠ Leakage detected: {leaked}")
+                    print(f"  ⚠ HARD leakage detected: {leaked}")
                     continue
             except ValueError as e:
                 leakage_failures += 1
                 print(f"  ⚠ Render error: {e}")
                 continue
+
+            # SOFT leakage check (substring scan with exemptions; warns but doesn't fail)
+            soft_leaked = check_leakage_substring(rendered)
+            if soft_leaked:
+                for term in soft_leaked:
+                    soft_leakage_warnings[term] += 1
 
             # Collect type distribution
             for c in constraints:
@@ -155,10 +167,16 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
     pass_rate = valid_windows / all_windows if all_windows > 0 else 0.0
     collected = len(chains_collected)
 
-    print(f"  Windows scanned:   {all_windows}")
-    print(f"  Valid windows:     {valid_windows}  ({pass_rate*100:.1f}%)")
-    print(f"  Leakage failures:  {leakage_failures}")
-    print(f"  Chains collected:  {collected}")
+    print(f"  Windows scanned:        {all_windows}")
+    print(f"  Valid windows:          {valid_windows}  ({pass_rate*100:.1f}%)")
+    print(f"  HARD leakage failures:  {leakage_failures}")
+    if soft_leakage_warnings:
+        print(f"  SOFT leakage warnings (substring; not fatal):")
+        for term, cnt in sorted(soft_leakage_warnings.items(), key=lambda x: -x[1]):
+            print(f"    '{term}' appeared in {cnt}/{collected} chains")
+    else:
+        print(f"  SOFT leakage warnings:  none ✅")
+    print(f"  Chains collected:       {collected}")
     print(f"  Constraint type distribution:")
     for ctype, cnt in sorted(type_counter.items()):
         avg = cnt / collected if collected > 0 else 0
@@ -196,8 +214,10 @@ def generate_pilot_chains(cell_name: str, cfg: dict) -> dict:
         "chains_collected": collected,
         "type_distribution": dict(type_counter),
         "type_per_chain": {k: v / collected for k, v in type_counter.items()} if collected > 0 else {},
+        "soft_leakage_warnings": dict(soft_leakage_warnings),
         "gate6_checks": {
-            "leakage_100pct": leakage_failures == 0,
+            "hard_leakage_100pct": leakage_failures == 0,
+            "soft_leakage_100pct": len(soft_leakage_warnings) == 0,
             "pass_rate_gte_80pct": pass_rate >= 0.80,
             "all_6_types_present": len(type_counter) >= 6,
             "collected_50_chains": collected >= PILOT_TARGET,

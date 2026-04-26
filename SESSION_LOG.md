@@ -347,3 +347,102 @@ Git tag: T-code-game-v1.0-frozen
 - Write to chains/real/{cell}/*.jsonl and chains/shuffled/{cell}/*.jsonl
 - Each JSONL record includes: chain_id, cell, game_id, variant, length, constraint_types, rendered
 - Shuffled records include: chain_id, match_id (= real chain_id), seed, rendered
+
+---
+
+## Session 6 (continued) — leakage hardening pass — 2026-04-25
+
+**Trigger:** Author paused before Session 7 to ask whether silent leakage was
+possible based on V1/V2 experience. Investigation surfaced a critical class of
+silent failures the existing word-boundary regex could not catch.
+
+**Root cause identified:**
+- Python `\b` word boundary treats `_` as a word character, so the regex
+  `\bwhite\b` does NOT match inside `material_white`.
+- CLAUDE.md prescribed several abstract labels (`material_white`, `material_black`,
+  `king_safety`, `pawn_chain_B`, `battery_A`, `back_row_C`) that embed chess
+  vocabulary. The leakage check silently passed all of these despite the
+  embedded words being clearly visible to a human reader (or LLM evaluator).
+- These prescriptions actively violated SPEC.md §Renderer leakage vocabulary,
+  which lists "king", "pawn", "battery"-class terms as leakage. The rename
+  brings the codebase INTO SPEC compliance — no SPEC supplement required.
+
+**Tasks completed:**
+- Built authoritative glossary `src/leakage_glossary.py` (158 entries, 23 categories)
+  - Sources: Wikipedia Glossary of Chess, Wikipedia English Draughts, Wikipedia
+    PDN spec, Chess.com terms, SPEC.md, curator domain knowledge
+  - Each entry tagged with: term, category, severity (high/medium/low),
+    definition, source, optional curator note, added_session
+  - Categories include: chess.piece, checkers.piece, chess.tactic, chess.rule,
+    chess.mate, chess.geometry, chess.structure, board.geometry, color.side,
+    game.name, notation.format, metadata.body, engine, format.time,
+    chess.strategy, result.token, chess.phase
+- Refactored `src/renderer.py`:
+  - Imports vocabulary from `leakage_glossary` (single source of truth)
+  - Hard check uses pre-compiled alternation regex (~6× faster)
+  - Added `check_leakage_substring()` soft check with relaxed boundaries
+    (treats `_` as non-word so `material_white` triggers, but uses
+    alphanumeric lookarounds so `permanent` doesn't false-positive on "man")
+  - Soft check supports explicit exemptions (`phase_opening`, etc.)
+- Renamed embedded-word labels in `src/translation.py`:
+  - `material_{side}` → `resource_{side}` (was containing "material")
+  - `tempo_remaining` → `progress_remaining` (was containing "tempo")
+  - `tempo_advantage` → `progress_advantage`
+  - `material_gain` → `resource_gain`
+  - `material_exchange` → `resource_exchange`
+  - `king_safety` → `objective_safety`
+  - `battery_A/B` → `coordination_A/B`
+  - `back_row_A/B` → `formation_A/B`
+  - `positional_transition` → `structural_transition`
+  - `tactical_shift` → `opportunity_shift`
+  - `control_center` → `central_focus`
+  - `defend_position` → `defend_zone`
+  - `position` (objective) → `structural`
+  - `weight_shift` formula: kept `phase_` prefix → `phase_endgame_priority`
+    instead of bare `endgame_priority`
+- Updated `tests/test_shuffler.py` fixtures (3 string updates)
+- Updated `CLAUDE.md` abstract-label table with all renames + hardening note
+- Re-ran pilot — all 4 cells pass HARD AND SOFT checks at the same pass rates
+  (87.7%, 96.2%, 87.7%, 94.3%) with 0 leakage warnings under either check
+- Full test suite: 42/42 pass
+
+**Gate status:** Gate 6 RE-PASSED with hardened checks
+  - chess_standard:    pass_rate=87.7%, hard=0, soft=0 ✅
+  - chess960:          pass_rate=96.2%, hard=0, soft=0 ✅
+  - checkers_american: pass_rate=87.7%, hard=0, soft=0 ✅
+  - draughts_intl:     pass_rate=94.3%, hard=0, soft=0 ✅
+
+**Files created/modified:**
+```
+src/leakage_glossary.py (NEW — 158 entries, single source of truth)
+src/renderer.py (imports glossary; hard regex compiled; soft check added)
+src/translation.py (12 label renames; phase-prefix preserved in weight_shift)
+tests/test_shuffler.py (fixture renames: material_white, material_exchange,
+                       tempo_remaining → resource_side_1, resource_exchange,
+                       progress_remaining)
+scripts/generate_pilot_chains.py (calls both hard + soft check; reports both)
+chains/pilot/*/pilot_chains.jsonl (regenerated with new labels)
+chains/pilot/*/pilot_stats.json (regenerated with both gate-check fields)
+chains/pilot/pilot_summary.json (regenerated)
+CLAUDE.md (abstract-label table updated; module status updated)
+SESSION_LOG.md (this addendum)
+```
+Git tag `T-code-game-v1.0-frozen` advanced from previous commit to current HEAD
+after the hardened pilot passed. The previous tag location remains in git
+history (via reflog).
+
+**Blockers / open questions:** none
+
+**Decision log (Session 6 hardening):**
+- Internal metadata keys (`material_side_1` in parser_chess.py event metadata,
+  `white_pieces`/`black_pieces` in parser_checkers.py event metadata) were
+  left as-is — they never flow into rendered output (only into a numeric
+  lookup that produces a float). Renaming was deferred as P2 cleanup.
+- Phase concept words (`phase_opening`, `phase_middlegame`, `phase_endgame`)
+  are exempted from soft check — the `phase_` prefix is the abstraction
+  marker, and an LLM seeing these can infer "sequential process with phase
+  transitions" but cannot distinguish chess from any other phase-structured
+  game.
+- Soft check is a development guardrail, not a runtime gate. The hard check
+  remains the enforced rendering gate. Soft check is invoked in pilot/full
+  generation scripts but not in `render_chain()` itself.

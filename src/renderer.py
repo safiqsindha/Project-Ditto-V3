@@ -3,9 +3,21 @@ Renderer: converts abstract Constraint objects into human-readable,
 domain-abstracted English.
 
 NO game-domain vocabulary is permitted in any output string. The post-rendering
-leakage check (check_leakage) is invoked automatically by render_chain() and
-enforces both the v2 programming-vocabulary list and the extended chess + checkers
-vocabulary defined in SPEC.md §Renderer leakage vocabulary.
+leakage check is invoked automatically by render_chain() and enforces both the
+v2 programming-vocabulary list AND the chess+checkers glossary maintained in
+src/leakage_glossary.py (single source of truth, see SPEC.md §Renderer leakage
+vocabulary).
+
+Two-tier check (Session 6 hardening):
+  - check_leakage(rendered)            — HARD: word-boundary regex; raises in
+                                         render_chain() if any match.
+  - check_leakage_substring(rendered)  — SOFT: substring scan with explicit
+                                         exemptions; warns on architecturally-
+                                         suspect strings like "material_white"
+                                         that the regex would not catch (since
+                                         Python `\\b` treats `_` as a word
+                                         char). Used during development and in
+                                         pilot/full-generation scripts.
 
 The leakage check is enforced in code; callers cannot bypass it.
 
@@ -25,6 +37,11 @@ from src.translation import (
     ResourceBudget,
     SubGoalTransition,
     ToolAvailability,
+)
+from src.leakage_glossary import (
+    HARD_CHECK_VOCAB as _GLOSSARY_HARD_VOCAB,
+    SOFT_CHECK_VOCAB as _GLOSSARY_SOFT_VOCAB,
+    SOFT_CHECK_EXEMPTIONS as _GLOSSARY_EXEMPTIONS,
 )
 
 
@@ -204,38 +221,23 @@ _PROGRAMMING_VOCAB: frozenset[str] = frozenset({
     "dockerfile", "makefile", "requirements",
 })
 
-# Chess-specific vocabulary (SPEC.md §Renderer leakage vocabulary)
-_CHESS_VOCAB: frozenset[str] = frozenset({
-    "pawn", "knight", "bishop", "rook", "queen", "castle",
-    "check", "mate", "checkmate", "stalemate",
-    "fork", "pin", "skewer",
-    "en passant", "en-passant",
-    # File labels (a–h) are single characters — whole-word match catches e.g. " a " or "file a"
-    # Rank labels (1–8) are numeric — avoid false positives on constraint amounts
-    # Algebraic notation fragments: handled via chess960 and "960" below
-    "chess", "chess960",
-    "lichess", "pgn", "fen", "uci",
-    "kingside", "queenside",
-    "fianchetto", "gambit", "sicilian", "caro",
-})
-
-# Checkers-specific vocabulary (SPEC.md §Renderer leakage vocabulary)
-_CHECKERS_VOCAB: frozenset[str] = frozenset({
-    "jump", "capture", "crown", "crowned",
-    "double corner", "double-corner",
-    "draughts", "checkers", "chequers",
-    "pdn",
-    "fmjd", "oca",
-    # "king" in checkers sense is excluded from the base chess vocab but added here
-    # because in checkers "king" means a crowned piece — different from chess "King"
-    # We list it here so both contexts are caught; rendered chains use abstract labels.
-    "king",
-})
-
-# Combined leakage vocabulary (v2 programming + chess + checkers)
+# Game-domain vocabulary now lives in src/leakage_glossary.py (single source of truth).
+# Combined hard-check vocabulary = v2 programming vocab + glossary high+medium severity.
 _DEFAULT_LEAKAGE_VOCAB: frozenset[str] = (
-    _PROGRAMMING_VOCAB | _CHESS_VOCAB | _CHECKERS_VOCAB
+    _PROGRAMMING_VOCAB | _GLOSSARY_HARD_VOCAB
 )
+
+
+# Pre-compile a single alternation regex for the hard check (~6× faster than
+# iterating per-term, important when scanning thousands of chains).
+def _compile_alternation(vocab: frozenset[str]) -> re.Pattern:
+    # Sort longest-first so multi-word terms like "en passant" match before "en"
+    sorted_terms = sorted(vocab, key=len, reverse=True)
+    pattern = r"\b(?:" + "|".join(re.escape(t) for t in sorted_terms) + r")\b"
+    return re.compile(pattern, flags=re.IGNORECASE)
+
+
+_HARD_CHECK_REGEX: re.Pattern = _compile_alternation(_DEFAULT_LEAKAGE_VOCAB)
 
 
 def check_leakage(
@@ -243,31 +245,104 @@ def check_leakage(
     vocab: set[str] | frozenset[str] | None = None,
 ) -> list[str]:
     """
-    Return any game-domain or programming-domain vocabulary found in the
-    rendered output.
-
-    A match is case-insensitive whole-word search.
+    Hard leakage check: return any game-domain or programming-domain vocabulary
+    found in the rendered output as a whole-word, case-insensitive match.
 
     Parameters
     ----------
     rendered : string produced by render_chain()
-    vocab    : set of terms to check. Defaults to _DEFAULT_LEAKAGE_VOCAB.
-               Pass an empty set only in unit tests that explicitly test
-               clean output.
+    vocab    : optional override; defaults to combined programming + glossary
+               high+medium severity vocabulary. Pass empty set in unit tests
+               that explicitly test clean output.
 
     Returns
     -------
     List of leaking terms (empty list means no leakage).
+
+    Notes
+    -----
+    Python `\\b` treats `_` as a word character. As a result, this check does
+    NOT catch terms embedded in compound labels like "material_white" — that
+    leakage class is caught by check_leakage_substring() instead.
     """
     if vocab is None:
-        vocab = _DEFAULT_LEAKAGE_VOCAB
+        # Use the pre-compiled regex for the default vocab (fast path)
+        return sorted(set(m.lower() for m in _HARD_CHECK_REGEX.findall(rendered)))
 
+    # Custom vocab: per-term iteration (used in tests)
     leaked: list[str] = []
     for term in vocab:
         pattern = r"\b" + re.escape(term) + r"\b"
         if re.search(pattern, rendered, flags=re.IGNORECASE):
             leaked.append(term)
     return leaked
+
+
+def check_leakage_substring(
+    rendered: str,
+    exempt_compounds: frozenset[str] | None = None,
+) -> list[str]:
+    """
+    Soft leakage check: relaxed-boundary scan that treats `_` as a NON-word char.
+
+    Catches glossary terms embedded inside compound labels like "material_white"
+    or "king_safety" that the hard check (\\b...\\b) misses because Python
+    treats `_` as a word character. Crucially, it does NOT pure-substring match
+    — that produced false positives on common English words ("permanent"
+    contains "man"; "defend" contains "fen").
+
+    Boundary rule: glossary term must be preceded and followed by either:
+      - start/end of string, OR
+      - a non-alphanumeric character (which now includes `_`).
+
+    Examples (term="white"):
+      - "material_white"  → MATCH  (preceded by `_`, end of string)
+      - " white piece"    → MATCH  (spaces around)
+      - "whitespace"      → no match (followed by `s` letter)
+
+    Examples (term="man"):
+      - "permanent"       → no match (preceded by `r` letter)
+      - "[man]"           → MATCH  (brackets are non-alnum)
+
+    Examples (term="fen"):
+      - "defend"          → no match (preceded by `e`, followed by `d` letter)
+      - "FEN string"      → MATCH
+
+    Parameters
+    ----------
+    rendered         : string produced by render_chain()
+    exempt_compounds : approved abstract compound labels (e.g. "phase_opening")
+                       that contain a glossary term but are explicitly allowed.
+                       Defaults to SOFT_CHECK_EXEMPTIONS from leakage_glossary.
+
+    Returns
+    -------
+    Sorted list of leaking terms found (de-duplicated, lowercase).
+
+    Use this in pilot/full-generation scripts as a development guardrail. It is
+    NOT invoked automatically by render_chain() because borderline cases require
+    judgment; the hard check is the enforced gate.
+    """
+    if exempt_compounds is None:
+        exempt_compounds = _GLOSSARY_EXEMPTIONS
+
+    # Mask exempt compounds with a non-alphanumeric placeholder so their
+    # embedded glossary terms aren't flagged.
+    masked = rendered
+    for compound in sorted(exempt_compounds, key=len, reverse=True):
+        masked = re.sub(re.escape(compound), "<<EXEMPT>>", masked, flags=re.IGNORECASE)
+
+    leaked: set[str] = set()
+    for term in _GLOSSARY_SOFT_VOCAB:
+        # Relaxed boundary: not preceded/followed by [a-zA-Z0-9]; underscore is OK.
+        pattern = (
+            r"(?<![a-zA-Z0-9])"
+            + re.escape(term)
+            + r"(?![a-zA-Z0-9])"
+        )
+        if re.search(pattern, masked, flags=re.IGNORECASE):
+            leaked.add(term.lower())
+    return sorted(leaked)
 
 
 # Backwards-compatible alias used by scorer and tests

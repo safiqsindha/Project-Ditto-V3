@@ -32,9 +32,15 @@ from typing import Any, List, Optional, Union
 
 @dataclass
 class ResourceBudget:
-    """Material count and tempo budget for game domain."""
+    """Resource count and progress budget for game domain.
+
+    Note (Session 6 hardening): label strings use abstract prefixes — `resource_side_1`
+    (was `material_side_1`), `progress_remaining` (was `tempo_remaining`) — to avoid
+    embedding chess-strategy vocabulary that would slip past the word-boundary
+    leakage regex.
+    """
     timestamp: int
-    resource: str           # e.g. "material_side_1", "tempo_remaining"
+    resource: str           # e.g. "resource_side_1", "progress_remaining"
     amount: float           # normalised 0.0–1.0
     decay: str              # "none" | "monotone_decrease" | "fluctuating"
     recover_in: Optional[int]  # expected moves until replenished, or None
@@ -74,18 +80,28 @@ class InformationState:
 
 @dataclass
 class CoordinationDependency:
-    """Piece coordination dependencies (batteries, X-rays, pawn structure)."""
+    """Piece coordination dependencies (abstract patterns).
+
+    Note (Session 6 hardening): pattern labels are fully abstract —
+    coordination_*, formation_*, chain_*, pressure_* — replacing the previous
+    battery_* and back_row_* which embedded chess-tactic vocabulary.
+    """
     timestamp: int
     role: str               # e.g. "side_1", "side_2"
-    dependency: str         # e.g. "battery_A", "chain_B", "back_row_C"
+    dependency: str         # e.g. "coordination_A", "chain_B", "formation_C"
     expected_action: str    # abstract action hint
 
 
 @dataclass
 class OptimizationCriterion:
-    """Implicit evaluation function inferred from move choice."""
+    """Implicit evaluation function inferred from move choice.
+
+    Note (Session 6 hardening): objective labels are fully abstract —
+    `objective_safety` (was `king_safety`), `resource_gain` (was `material_gain`),
+    `progress_advantage` (was `tempo_advantage`).
+    """
     timestamp: int
-    objective: str          # e.g. "material_gain", "king_safety", "mobility"
+    objective: str          # e.g. "objective_safety", "resource_gain", "mobility"
     weight_shift: str       # type-specific descriptor (abstract labels)
 
 
@@ -169,26 +185,37 @@ _START_PIECES = {
 # Coordination pattern labels (abstract — no domain vocabulary)
 # ---------------------------------------------------------------------------
 
+# All labels below are fully abstract — none embed any glossary leakage term as
+# a substring (verified against src.leakage_glossary.SOFT_CHECK_VOCAB at S6).
 _COORD_PATTERNS = [
-    "battery_A", "battery_B",
+    "coordination_A", "coordination_B",   # was battery_A/B (chess tactic)
     "chain_A", "chain_B", "chain_C",
-    "back_row_A", "back_row_B",
+    "formation_A", "formation_B",         # was back_row_A/B (chess geometry)
     "pressure_A", "pressure_B",
 ]
 
 _COORD_ACTIONS = [
-    "maintain_formation", "advance_together", "defend_position",
-    "control_center", "restrict_mobility", "support_advance",
+    "maintain_formation", "advance_together", "defend_zone",   # was defend_position
+    "central_focus",                                            # was control_center
+    "restrict_mobility", "support_advance",
 ]
 
 _OPT_OBJECTIVES = [
-    "material_gain", "king_safety", "mobility",
-    "position", "tempo_advantage", "structure",
+    "resource_gain",       # was material_gain (chess "material" strategy term)
+    "objective_safety",    # was king_safety (chess "king" piece)
+    "mobility",
+    "structural",          # was "position" (suggestive in board-game context)
+    "progress_advantage",  # was tempo_advantage (chess "tempo")
+    "structure",
 ]
 
 _TRIGGERS = [
-    "material_exchange", "structure_shift", "piece_activation",
-    "subgoal_achieved", "positional_transition", "tactical_shift",
+    "resource_exchange",       # was material_exchange
+    "structure_shift",
+    "piece_activation",
+    "subgoal_achieved",
+    "structural_transition",   # was positional_transition (chess "positional")
+    "opportunity_shift",       # was tactical_shift (chess "tactical")
 ]
 
 
@@ -286,9 +313,12 @@ def translate_event(event: GameEvent, context: Any) -> List[Constraint]:
     rb_due = (position % 4 == 3)
     if rb_due:
         amount = _normalise_material(event, variant)
-        resource = f"material_{event.side}"
+        # Abstract labels: "resource_side_N" replaces "material_side_N" (S6 hardening:
+        # bare "material" is chess strategy vocabulary). "progress_remaining" replaces
+        # "tempo_remaining" (chess "tempo" is similarly leaky).
+        resource = f"resource_{event.side}"
         if event.phase_indicator == "phase_opening":
-            resource = "tempo_remaining"
+            resource = "progress_remaining"
         return [ResourceBudget(
             timestamp=t,
             resource=resource,
@@ -375,11 +405,13 @@ def translate_event(event: GameEvent, context: Any) -> List[Constraint]:
         )]
     else:
         obj = _OPT_OBJECTIVES[position % len(_OPT_OBJECTIVES)]
-        phase_label = event.phase_indicator.replace("phase_", "")
+        # S6 hardening: keep the `phase_` prefix as the abstraction marker.
+        # Previously stripped → emitted bare "endgame_priority" etc., which leaks
+        # via substring (chess phase vocabulary). Now: "phase_endgame_priority".
         return [OptimizationCriterion(
             timestamp=t,
             objective=obj,
-            weight_shift=f"{phase_label}_priority",
+            weight_shift=f"{event.phase_indicator}_priority",
         )]
 
 
