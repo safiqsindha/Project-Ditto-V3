@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Union
 
 
 # ---------------------------------------------------------------------------
@@ -89,14 +89,14 @@ class OptimizationCriterion:
 
 
 # Union type for all constraints
-Constraint = (
-    ResourceBudget
-    | ToolAvailability
-    | SubGoalTransition
-    | InformationState
-    | CoordinationDependency
-    | OptimizationCriterion
-)
+Constraint = Union[
+    ResourceBudget,
+    ToolAvailability,
+    SubGoalTransition,
+    InformationState,
+    CoordinationDependency,
+    OptimizationCriterion,
+]
 
 # Mapping from type name string → dataclass (used by deserialisation)
 _TYPE_MAP: dict[str, type] = {
