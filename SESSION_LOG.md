@@ -180,3 +180,70 @@ scripts/download_lidraughts_users.py
 - Implement `src/aggregation.py`: windowing to 15–25 events
 - Unit tests for all three modules
 - Gate 3: parsers produce valid TrajectoryLog objects on ≥95% of sampled games
+
+---
+
+## Session 4 — 2026-04-26
+
+**Tasks completed:**
+- Implemented `src/parser_chess.py`:
+  - parse_pgn_game(record, chess960=False) → TrajectoryLog
+  - parse_games_jsonl(path, chess960, limit) → Iterator[TrajectoryLog]
+  - Phase detection: opening (ply<20 + material>50), endgame (no queens or material<20), middlegame (else)
+  - Abstract piece labels: piece_A...piece_L (white pawn→piece_A, black king→piece_L, etc.)
+  - Abstract square labels: sq_0...sq_63 (a1=0, h8=63)
+  - Captures, promotions, castling correctly classified
+  - Material counts stored in event metadata for T-code use
+- Implemented `src/parser_checkers.py`:
+  - parse_pdn_game(record, variant) → TrajectoryLog
+  - parse_games_jsonl(path, variant, limit) → Iterator[TrajectoryLog]
+  - Supports VARIANT_AMERICAN ("american") and VARIANT_INTERNATIONAL ("standard")
+  - Uses draughts.Board + draughts.Move for position tracking + FEN parsing
+  - Phase detection: by piece count fraction (opening >80%, endgame <45%)
+  - Abstract piece labels: piece_A (white man), piece_B (white king), piece_C (black man), piece_D (black king)
+  - Multi-captures (e.g. "18x27x36") handled via draughts.Move(board, pdn_move=...)
+  - Promotions detected by comparing pre/post FEN piece types
+- Implemented `src/aggregation.py`:
+  - compute_windows(traj) → list of (start, end) index pairs, non-overlapping, length 15–25
+  - aggregate_trajectory(traj, start, end) → list[GameEvent], capped at 25
+  - extract_all_windows(traj) → all valid windows from one trajectory
+  - sample_window(traj, rng) → one random valid window
+  - Phase-boundary-aware window selection
+- Written `tests/test_parsers.py`: 27 tests covering all four cells + aggregation + Gate 3
+
+**Gate status:** Gate 3 PASSED — 100% parse success on 100 games/cell (all four cells)
+  - chess_standard: 100/100 ✅
+  - chess960: 100/100 ✅
+  - checkers_american: 100/100 ✅
+  - draughts_intl: 100/100 ✅
+
+**Key implementation notes:**
+- draughts library installed as `import draughts` (NOT `import pydraughts`)
+- draughts.Board("american") creates 8x8 board; draughts.Board("standard") creates 10x10
+- draughts.Move(board, pdn_move="33-28") creates move from PDN string
+- board.fen is a property (not method) in this version
+- FEN format: `{turn}:W{squares}:B{squares}` where K prefix = king
+
+**Files created/modified:**
+```
+src/parser_chess.py
+src/parser_checkers.py
+src/aggregation.py
+tests/test_parsers.py
+```
+
+**Blockers / open questions:** none
+
+**Next session (Session 5) planned tasks:**
+- Implement `src/translation.py` T-code:
+  - translate_event(event, context) → list[Constraint]
+  - translate_trajectory(events) → list[Constraint]
+  - Map all 6 constraint types to game events (SPEC §Constraint type mappings)
+  - ResourceBudget from material counts in event metadata
+  - ToolAvailability from captures (piece → UNAVAILABLE permanently) and moves (piece → AVAILABLE)
+  - SubGoalTransition from phase_indicator changes
+  - InformationState: constant complete (non-actionable)
+  - CoordinationDependency from piece coordination patterns
+  - OptimizationCriterion from move type inference
+- Verify T-code outputs pass both-actionable filter (≥1 SubGoalTransition, ≥1 ToolAvailability, ≥1 CoordinationDependency, ≥1 OptimizationCriterion)
+- Run 50-game pilot (Session 6 prep)
