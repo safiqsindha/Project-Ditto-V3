@@ -124,7 +124,8 @@ def _save_results(
     with raw_path.open("w", encoding="utf-8") as fh:
         json.dump(result, fh, indent=2)
 
-    blinded_dir = Path(output_dir).parent / "blinded"
+    # output_dir is `results/raw/{phase}` → blinded is `results/blinded/` (sibling of raw/)
+    blinded_dir = Path(output_dir).parent.parent / "blinded"
     blinded_dir.mkdir(parents=True, exist_ok=True)
     blinded = {
         "chain_id": chain_id,
