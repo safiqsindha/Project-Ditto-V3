@@ -220,6 +220,21 @@ class ReferenceDistribution:
         is intentionally NOT read here. Stored field is retained on disk
         as a deprecated audit trail.
 
+        Bug 4 fix (audit, 2026-04-25): counts are populated at ALL backoff
+        levels (0, 1, 2, 3), not just level 0. The pre-fix build only stored
+        counts at level 0, so `lookup_with_backoff` at levels 1-3 returned
+        empty (key shape mismatch — 4-tuple keys vs 3-tuple lookups). This
+        caused 32% of pairs in Phase 1 partial scoring to be silently dropped
+        when the shuffled chain's state-sig had no level-0 match. Populating
+        all levels lets backoff actually engage, broadening the test
+        population and avoiding the selection bias that caused the first
+        partial scoring to show a counter-intuitive negative gap.
+
+        Each chain contributes to 4 sigs (one per level), each pointing to
+        the same focal_action. Distributions are preserved (proportions are
+        what matter for top-k); absolute counts inflate by ~4× total but
+        per-sig top-k orderings are correct.
+
         Each chain must have 'constraints' (list of dicts) and 'cutoff_k'.
         """
         counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -244,8 +259,11 @@ class ReferenceDistribution:
             if not focal_action:
                 continue
 
-            sig = extract_state_signature(constraints, cutoff_k, backoff_level=0)
-            counts[sig][focal_action] += 1
+            # Bug 4 fix: populate counts at ALL backoff levels so
+            # lookup_with_backoff can find data at any level the caller hits.
+            for level in range(4):
+                sig = extract_state_signature(constraints, cutoff_k, backoff_level=level)
+                counts[sig][focal_action] += 1
             total += 1
 
         # Convert defaultdicts to regular dicts for pickling

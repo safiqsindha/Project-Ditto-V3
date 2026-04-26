@@ -2,7 +2,7 @@
   "cells": {
     "chess_standard": {
       "real_chains": 1200,
-      "unique_state_sigs": 102,
+      "unique_state_sigs": 176,
       "total_chains_contributing": 1200,
       "level_counts": {
         "0": 1200,
@@ -16,7 +16,7 @@
     },
     "chess960": {
       "real_chains": 1200,
-      "unique_state_sigs": 105,
+      "unique_state_sigs": 174,
       "total_chains_contributing": 1200,
       "level_counts": {
         "0": 1200,
@@ -30,7 +30,7 @@
     },
     "checkers_american": {
       "real_chains": 1200,
-      "unique_state_sigs": 62,
+      "unique_state_sigs": 118,
       "total_chains_contributing": 1200,
       "level_counts": {
         "0": 1200,
@@ -44,7 +44,7 @@
     },
     "draughts_intl": {
       "real_chains": 1200,
-      "unique_state_sigs": 77,
+      "unique_state_sigs": 139,
       "total_chains_contributing": 1200,
       "level_counts": {
         "0": 1200,
