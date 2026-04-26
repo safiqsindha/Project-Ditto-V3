@@ -1,0 +1,523 @@
+{
+  "phase": "option_c_post_hoc",
+  "per_cell": {
+    "chess_standard": {
+      "overall": {
+        "n_pairs_total": 3600,
+        "n_pairs_actionable": 1288,
+        "layer1": {
+          "n_pairs": 3600,
+          "n11_concordant_both_match": 43,
+          "b_discordant_real_match": 143,
+          "c_discordant_shuffled_match": 291,
+          "n00_concordant_neither": 3123,
+          "real_rate": 0.0517,
+          "shuffled_rate": 0.0928,
+          "gap": -0.0411,
+          "chi2_stat": 49.7903,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "layer1_actionable": {
+          "n_pairs": 1288,
+          "n11_concordant_both_match": 0,
+          "b_discordant_real_match": 4,
+          "c_discordant_shuffled_match": 199,
+          "n00_concordant_neither": 1085,
+          "real_rate": 0.0031,
+          "shuffled_rate": 0.1545,
+          "gap": -0.1514,
+          "chi2_stat": 185.399,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "p_value_bonferroni": 0.0
+      },
+      "same_level_only": {
+        "n_pairs_actionable": 524,
+        "layer1_actionable": {
+          "n_pairs": 524,
+          "n11_concordant_both_match": 0,
+          "b_discordant_real_match": 2,
+          "c_discordant_shuffled_match": 44,
+          "n00_concordant_neither": 478,
+          "real_rate": 0.0038,
+          "shuffled_rate": 0.084,
+          "gap": -0.0802,
+          "chi2_stat": 36.5435,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        }
+      },
+      "per_stratum": {
+        "real_L0_shuf_L3": {
+          "n_pairs_actionable": 65,
+          "layer1_actionable": {
+            "n_pairs": 65,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 0,
+            "c_discordant_shuffled_match": 7,
+            "n00_concordant_neither": 58,
+            "real_rate": 0.0,
+            "shuffled_rate": 0.1077,
+            "gap": -0.1077,
+            "chi2_stat": 5.1429,
+            "p_value": 0.0233,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L0": {
+          "n_pairs_actionable": 524,
+          "layer1_actionable": {
+            "n_pairs": 524,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 2,
+            "c_discordant_shuffled_match": 44,
+            "n00_concordant_neither": 478,
+            "real_rate": 0.0038,
+            "shuffled_rate": 0.084,
+            "gap": -0.0802,
+            "chi2_stat": 36.5435,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L1": {
+          "n_pairs_actionable": 542,
+          "layer1_actionable": {
+            "n_pairs": 542,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 2,
+            "c_discordant_shuffled_match": 119,
+            "n00_concordant_neither": 421,
+            "real_rate": 0.0037,
+            "shuffled_rate": 0.2196,
+            "gap": -0.2159,
+            "chi2_stat": 111.2066,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L2": {
+          "n_pairs_actionable": 157,
+          "layer1_actionable": {
+            "n_pairs": 157,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 0,
+            "c_discordant_shuffled_match": 29,
+            "n00_concordant_neither": 128,
+            "real_rate": 0.0,
+            "shuffled_rate": 0.1847,
+            "gap": -0.1847,
+            "chi2_stat": 27.0345,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        }
+      },
+      "backoff_breakdown": {
+        "real": {
+          "n": 3600,
+          "level_0_pct": 100.0,
+          "level_1_pct": 0.0,
+          "level_2plus_pct": 0.0,
+          "mean_level": 0.0
+        },
+        "shuffled": {
+          "n": 3600,
+          "level_0_pct": 67.78,
+          "level_1_pct": 19.44,
+          "level_2plus_pct": 12.78,
+          "mean_level": 0.4911
+        }
+      }
+    },
+    "chess960": {
+      "overall": {
+        "n_pairs_total": 3600,
+        "n_pairs_actionable": 1250,
+        "layer1": {
+          "n_pairs": 3600,
+          "n11_concordant_both_match": 41,
+          "b_discordant_real_match": 193,
+          "c_discordant_shuffled_match": 162,
+          "n00_concordant_neither": 3204,
+          "real_rate": 0.065,
+          "shuffled_rate": 0.0564,
+          "gap": 0.0086,
+          "chi2_stat": 2.5352,
+          "p_value": 0.1113,
+          "significant_05": false,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "layer1_actionable": {
+          "n_pairs": 1250,
+          "n11_concordant_both_match": 6,
+          "b_discordant_real_match": 15,
+          "c_discordant_shuffled_match": 128,
+          "n00_concordant_neither": 1101,
+          "real_rate": 0.0168,
+          "shuffled_rate": 0.1072,
+          "gap": -0.0904,
+          "chi2_stat": 87.7203,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "p_value_bonferroni": 0.0
+      },
+      "same_level_only": {
+        "n_pairs_actionable": 537,
+        "layer1_actionable": {
+          "n_pairs": 537,
+          "n11_concordant_both_match": 4,
+          "b_discordant_real_match": 9,
+          "c_discordant_shuffled_match": 60,
+          "n00_concordant_neither": 464,
+          "real_rate": 0.0242,
+          "shuffled_rate": 0.1192,
+          "gap": -0.095,
+          "chi2_stat": 36.2319,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        }
+      },
+      "per_stratum": {
+        "real_L0_shuf_L0": {
+          "n_pairs_actionable": 537,
+          "layer1_actionable": {
+            "n_pairs": 537,
+            "n11_concordant_both_match": 4,
+            "b_discordant_real_match": 9,
+            "c_discordant_shuffled_match": 60,
+            "n00_concordant_neither": 464,
+            "real_rate": 0.0242,
+            "shuffled_rate": 0.1192,
+            "gap": -0.095,
+            "chi2_stat": 36.2319,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L1": {
+          "n_pairs_actionable": 496,
+          "layer1_actionable": {
+            "n_pairs": 496,
+            "n11_concordant_both_match": 2,
+            "b_discordant_real_match": 6,
+            "c_discordant_shuffled_match": 58,
+            "n00_concordant_neither": 430,
+            "real_rate": 0.0161,
+            "shuffled_rate": 0.121,
+            "gap": -0.1048,
+            "chi2_stat": 40.6406,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L3": {
+          "n_pairs_actionable": 156,
+          "layer1_actionable": {
+            "n_pairs": 156,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 0,
+            "c_discordant_shuffled_match": 2,
+            "n00_concordant_neither": 154,
+            "real_rate": 0.0,
+            "shuffled_rate": 0.0128,
+            "gap": -0.0128,
+            "chi2_stat": 0.5,
+            "p_value": 0.4795,
+            "significant_05": false,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L2": {
+          "n_pairs_actionable": 61,
+          "layer1_actionable": {
+            "n_pairs": 61,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 0,
+            "c_discordant_shuffled_match": 8,
+            "n00_concordant_neither": 53,
+            "real_rate": 0.0,
+            "shuffled_rate": 0.1311,
+            "gap": -0.1311,
+            "chi2_stat": 6.125,
+            "p_value": 0.0133,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        }
+      },
+      "backoff_breakdown": {
+        "real": {
+          "n": 3600,
+          "level_0_pct": 100.0,
+          "level_1_pct": 0.0,
+          "level_2plus_pct": 0.0,
+          "mean_level": 0.0
+        },
+        "shuffled": {
+          "n": 3600,
+          "level_0_pct": 71.56,
+          "level_1_pct": 18.19,
+          "level_2plus_pct": 10.25,
+          "mean_level": 0.4533
+        }
+      }
+    },
+    "checkers_american": {
+      "overall": {
+        "n_pairs_total": 3600,
+        "n_pairs_actionable": 1496,
+        "layer1": {
+          "n_pairs": 3600,
+          "n11_concordant_both_match": 108,
+          "b_discordant_real_match": 591,
+          "c_discordant_shuffled_match": 412,
+          "n00_concordant_neither": 2489,
+          "real_rate": 0.1942,
+          "shuffled_rate": 0.1444,
+          "gap": 0.0497,
+          "chi2_stat": 31.5892,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "layer1_actionable": {
+          "n_pairs": 1496,
+          "n11_concordant_both_match": 21,
+          "b_discordant_real_match": 125,
+          "c_discordant_shuffled_match": 251,
+          "n00_concordant_neither": 1099,
+          "real_rate": 0.0976,
+          "shuffled_rate": 0.1818,
+          "gap": -0.0842,
+          "chi2_stat": 41.5559,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "p_value_bonferroni": 0.0
+      },
+      "same_level_only": {
+        "n_pairs_actionable": 870,
+        "layer1_actionable": {
+          "n_pairs": 870,
+          "n11_concordant_both_match": 9,
+          "b_discordant_real_match": 66,
+          "c_discordant_shuffled_match": 89,
+          "n00_concordant_neither": 706,
+          "real_rate": 0.0862,
+          "shuffled_rate": 0.1126,
+          "gap": -0.0264,
+          "chi2_stat": 3.1226,
+          "p_value": 0.0772,
+          "significant_05": false,
+          "test": "mcnemar_continuity_corrected"
+        }
+      },
+      "per_stratum": {
+        "real_L0_shuf_L0": {
+          "n_pairs_actionable": 870,
+          "layer1_actionable": {
+            "n_pairs": 870,
+            "n11_concordant_both_match": 9,
+            "b_discordant_real_match": 66,
+            "c_discordant_shuffled_match": 89,
+            "n00_concordant_neither": 706,
+            "real_rate": 0.0862,
+            "shuffled_rate": 0.1126,
+            "gap": -0.0264,
+            "chi2_stat": 3.1226,
+            "p_value": 0.0772,
+            "significant_05": false,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L1": {
+          "n_pairs_actionable": 448,
+          "layer1_actionable": {
+            "n_pairs": 448,
+            "n11_concordant_both_match": 10,
+            "b_discordant_real_match": 45,
+            "c_discordant_shuffled_match": 125,
+            "n00_concordant_neither": 268,
+            "real_rate": 0.1228,
+            "shuffled_rate": 0.3013,
+            "gap": -0.1786,
+            "chi2_stat": 36.7118,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L2": {
+          "n_pairs_actionable": 178,
+          "layer1_actionable": {
+            "n_pairs": 178,
+            "n11_concordant_both_match": 2,
+            "b_discordant_real_match": 14,
+            "c_discordant_shuffled_match": 37,
+            "n00_concordant_neither": 125,
+            "real_rate": 0.0899,
+            "shuffled_rate": 0.2191,
+            "gap": -0.1292,
+            "chi2_stat": 9.4902,
+            "p_value": 0.0021,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        }
+      },
+      "backoff_breakdown": {
+        "real": {
+          "n": 3600,
+          "level_0_pct": 100.0,
+          "level_1_pct": 0.0,
+          "level_2plus_pct": 0.0,
+          "mean_level": 0.0
+        },
+        "shuffled": {
+          "n": 3600,
+          "level_0_pct": 68.83,
+          "level_1_pct": 19.75,
+          "level_2plus_pct": 11.42,
+          "mean_level": 0.4258
+        }
+      }
+    },
+    "draughts_intl": {
+      "overall": {
+        "n_pairs_total": 3600,
+        "n_pairs_actionable": 1533,
+        "layer1": {
+          "n_pairs": 3600,
+          "n11_concordant_both_match": 58,
+          "b_discordant_real_match": 329,
+          "c_discordant_shuffled_match": 354,
+          "n00_concordant_neither": 2859,
+          "real_rate": 0.1075,
+          "shuffled_rate": 0.1144,
+          "gap": -0.0069,
+          "chi2_stat": 0.8433,
+          "p_value": 0.3584,
+          "significant_05": false,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "layer1_actionable": {
+          "n_pairs": 1533,
+          "n11_concordant_both_match": 15,
+          "b_discordant_real_match": 51,
+          "c_discordant_shuffled_match": 238,
+          "n00_concordant_neither": 1229,
+          "real_rate": 0.0431,
+          "shuffled_rate": 0.165,
+          "gap": -0.122,
+          "chi2_stat": 119.7093,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        },
+        "p_value_bonferroni": 0.0
+      },
+      "same_level_only": {
+        "n_pairs_actionable": 901,
+        "layer1_actionable": {
+          "n_pairs": 901,
+          "n11_concordant_both_match": 4,
+          "b_discordant_real_match": 36,
+          "c_discordant_shuffled_match": 94,
+          "n00_concordant_neither": 767,
+          "real_rate": 0.0444,
+          "shuffled_rate": 0.1088,
+          "gap": -0.0644,
+          "chi2_stat": 24.9923,
+          "p_value": 0.0,
+          "significant_05": true,
+          "test": "mcnemar_continuity_corrected"
+        }
+      },
+      "per_stratum": {
+        "real_L0_shuf_L0": {
+          "n_pairs_actionable": 901,
+          "layer1_actionable": {
+            "n_pairs": 901,
+            "n11_concordant_both_match": 4,
+            "b_discordant_real_match": 36,
+            "c_discordant_shuffled_match": 94,
+            "n00_concordant_neither": 767,
+            "real_rate": 0.0444,
+            "shuffled_rate": 0.1088,
+            "gap": -0.0644,
+            "chi2_stat": 24.9923,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L1": {
+          "n_pairs_actionable": 500,
+          "layer1_actionable": {
+            "n_pairs": 500,
+            "n11_concordant_both_match": 11,
+            "b_discordant_real_match": 13,
+            "c_discordant_shuffled_match": 127,
+            "n00_concordant_neither": 349,
+            "real_rate": 0.048,
+            "shuffled_rate": 0.276,
+            "gap": -0.228,
+            "chi2_stat": 91.2071,
+            "p_value": 0.0,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        },
+        "real_L0_shuf_L2": {
+          "n_pairs_actionable": 132,
+          "layer1_actionable": {
+            "n_pairs": 132,
+            "n11_concordant_both_match": 0,
+            "b_discordant_real_match": 2,
+            "c_discordant_shuffled_match": 17,
+            "n00_concordant_neither": 113,
+            "real_rate": 0.0152,
+            "shuffled_rate": 0.1288,
+            "gap": -0.1136,
+            "chi2_stat": 10.3158,
+            "p_value": 0.0013,
+            "significant_05": true,
+            "test": "mcnemar_continuity_corrected"
+          }
+        }
+      },
+      "backoff_breakdown": {
+        "real": {
+          "n": 3600,
+          "level_0_pct": 100.0,
+          "level_1_pct": 0.0,
+          "level_2plus_pct": 0.0,
+          "mean_level": 0.0
+        },
+        "shuffled": {
+          "n": 3600,
+          "level_0_pct": 74.36,
+          "level_1_pct": 19.28,
+          "level_2plus_pct": 6.36,
+          "mean_level": 0.32
+        }
+      }
+    }
+  }
+}

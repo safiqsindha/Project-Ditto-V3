@@ -1,0 +1,41 @@
+{
+  "policy": "Option C",
+  "per_cell": {
+    "chess_standard": {
+      "policy": "Option C \u2014 per-sig cap to max non-resource count; preserve resource-only sigs",
+      "n_sigs_total": 176,
+      "sigs_with_resource_capped": 31,
+      "sigs_no_capping_needed": 81,
+      "sigs_resource_only_preserved": 64,
+      "sigs_with_top3_changed": 20,
+      "sigs_dropped_empty": 0
+    },
+    "chess960": {
+      "policy": "Option C \u2014 per-sig cap to max non-resource count; preserve resource-only sigs",
+      "n_sigs_total": 174,
+      "sigs_with_resource_capped": 27,
+      "sigs_no_capping_needed": 94,
+      "sigs_resource_only_preserved": 53,
+      "sigs_with_top3_changed": 25,
+      "sigs_dropped_empty": 0
+    },
+    "checkers_american": {
+      "policy": "Option C \u2014 per-sig cap to max non-resource count; preserve resource-only sigs",
+      "n_sigs_total": 118,
+      "sigs_with_resource_capped": 19,
+      "sigs_no_capping_needed": 67,
+      "sigs_resource_only_preserved": 32,
+      "sigs_with_top3_changed": 6,
+      "sigs_dropped_empty": 0
+    },
+    "draughts_intl": {
+      "policy": "Option C \u2014 per-sig cap to max non-resource count; preserve resource-only sigs",
+      "n_sigs_total": 139,
+      "sigs_with_resource_capped": 23,
+      "sigs_no_capping_needed": 78,
+      "sigs_resource_only_preserved": 38,
+      "sigs_with_top3_changed": 12,
+      "sigs_dropped_empty": 0
+    }
+  }
+}

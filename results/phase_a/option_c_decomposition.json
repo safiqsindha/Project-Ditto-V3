@@ -1,0 +1,38 @@
+{
+  "policy": "Option C (per-sig cap to max non-resource - 1; preserve resource-only sigs)",
+  "framing": "post-hoc methodology investigation; NOT a Phase A retry",
+  "rows": [
+    {
+      "cell": "chess_standard",
+      "col1_pre_reg": -0.1871,
+      "col2_trv_filt": -0.1828,
+      "col3_option_b": -0.0675,
+      "col4_option_c": -0.1514,
+      "col4_option_c_same_level": -0.0802
+    },
+    {
+      "cell": "chess960",
+      "col1_pre_reg": -0.2312,
+      "col2_trv_filt": -0.2272,
+      "col3_option_b": -0.0464,
+      "col4_option_c": -0.0904,
+      "col4_option_c_same_level": -0.095
+    },
+    {
+      "cell": "checkers_american",
+      "col1_pre_reg": -0.115,
+      "col2_trv_filt": -0.1121,
+      "col3_option_b": -0.0087,
+      "col4_option_c": -0.0842,
+      "col4_option_c_same_level": -0.0264
+    },
+    {
+      "cell": "draughts_intl",
+      "col1_pre_reg": -0.1553,
+      "col2_trv_filt": -0.1589,
+      "col3_option_b": -0.0724,
+      "col4_option_c": -0.122,
+      "col4_option_c_same_level": -0.0644
+    }
+  ]
+}
