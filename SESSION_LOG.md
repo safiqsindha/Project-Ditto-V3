@@ -983,3 +983,119 @@ SESSION_LOG.md (this entry)
 
 **Branch state**: `claude/phase-a-verification` — NOT merged. main and
 the `T-code-game-v1.0-frozen` tag are unaffected.
+
+---
+
+## Phase A — Path 1 follow-up: stratified analysis on backoff confound — 2026-04-26
+
+**Branch**: same `claude/phase-a-verification` (continuation).
+
+**Question tested**: when restricted to pairs where real and shuffled
+both scored at the same backoff level, does the residual -0.07 gap (under
+downweighted reference) go to zero, or stay negative?
+
+**Method**: `scripts/phase_a_stratified.py` — re-runs A4-style scoring
+but tracks the backoff level used by EACH side independently per pair.
+Buckets pairs by joint `(real_level, shuf_level)`. Computes McNemar gap
+per bucket and for the same-level-only subset.
+
+### Results — chess_standard, primary config T=0.0/seed=42
+
+Decomposition of the L1 actionable gap:
+
+| Stage | n_act | gap | 95% CI | p |
+|---|---|---|---|---|
+| Pre-registered (col1) | 1,288 | -0.1871 | [-0.214, -0.160] | <0.001 |
+| + Downweighted (col3) | 1,288 | -0.0675 | [-0.082, -0.053] | <0.001 |
+| + Same-level only | 436 | **-0.0046** | **[-0.016, +0.006]** | **0.683** |
+
+Movement attribution:
+- Mechanism 2 (resource-side downweighting): +0.1196 movement (63.9% of total inversion)
+- Mechanism 3 (backoff-level matching): +0.0629 movement (33.6% of total inversion)
+- **Combined: 97.5% of the inversion is explained by these two methodology artifacts.**
+- Residual gap: -0.0046, statistically null at p=0.68.
+
+### Per-stratum breakdown — chess_standard downweighted
+
+| (real_level, shuf_level) | n_act | gap | p |
+|---|---|---|---|
+| (0, 0) — both level-0 | 436 | -0.0046 | 0.683 |
+| (0, 1) — shuf backed off 1 | 554 | -0.0866 | <0.001 |
+| (0, 2) — shuf backed off 2 | 120 | -0.2417 | <0.001 |
+| (0, 3) — shuf backed off 3 | 178 | -0.0449 | 0.013 |
+
+The further shuffled has to back off, the larger the negative gap. Real
+chains are essentially never at level 1+ in the actionable subset (their
+RB-cutoff chains were excluded by actionable filter pre-stratification).
+
+This is direct evidence of the backoff confound: shuffled chains scored
+against broader, cell-level top-3 distributions match the model's
+collapse-to-common-entity behavior; the broader the backoff, the more
+shuffled "wins."
+
+### All cells — same-level-only L1 actionable gap
+
+| Cell | overall (col3) | same-level (col3) | direction |
+|---|---|---|---|
+| chess_standard | -0.0675 | **-0.0046** | null |
+| chess960 | -0.0464 | -0.0088 | near null |
+| checkers_american | -0.0087 | **+0.0386** | positive |
+| draughts_intl | -0.0724 | **+0.0076** | positive |
+
+When BOTH methodology fixes are applied (downweighted ref + matched
+backoff level), the inversion vanishes across all four cells:
+- 2 cells go to statistical null
+- 2 cells go positive (in expected direction)
+
+### Synthesis — diagnosis is COMPLETE
+
+The original v3 `reversed` finding is fully explained by methodology
+artifacts:
+
+1. **Mechanism 2 (resource-side dominance)**: T-code's pos%4==3 rule
+   forces ResourceBudget at many positions, making `resource_side_*`
+   dominate the reference distribution top-3. Model collapses to
+   `resource_side_*` on shuffled prefixes; reference rewards "guess
+   common entity"; shuffled wins. Accounts for ~64% of inversion.
+
+2. **Mechanism 3 (backoff differential)**: Real chains overwhelmingly
+   find level-0 sig matches (their own data is in the reference);
+   shuffled chains backoff to broader cell-level distributions ~3×
+   more often. The broader distributions are dominated by
+   common-across-cell entities, which the model's collapse-to-common
+   behavior matches. Accounts for ~34% of inversion (residual after
+   Mechanism 2 controlled).
+
+3. **Combined**: ~97% explained. Residual is statistical null
+   (-0.0046, p=0.68, 95% CI includes zero).
+
+The constraint-chain abstraction is **not detectable** in v3 under the
+pre-registered methodology — but this is a methodology artifact, not a
+true experimental result. The methodology cannot reliably distinguish
+real-vs-shuffled because two independent confounds dominate the signal.
+
+### Implications
+
+- **The pre-registered "reversed" finding does not represent a true
+  experimental signal.** When methodology contamination is removed,
+  the gap goes to null. This is reportable as-is per pre-registration
+  ("reversed" outcome tier with full diagnostic context).
+- **v4 redesign needs to address both mechanisms**:
+  - Drop or replace `pos%4==3` ResourceBudget rule (or pick a metric
+    that's robust to T-code structural skew)
+  - Use a scoring approach that doesn't introduce backoff differential
+    between real and shuffled chains (e.g., always use level-1 lookup,
+    or build a held-out reference where neither real nor shuffled has
+    its own data leaked in)
+- **The Layer 2 metric was degenerate** under v3.1 prompt (legality=1
+  for all responses), so it didn't provide independent signal.
+
+### Files added in this follow-up
+
+```
+scripts/phase_a_stratified.py
+results/phase_a/stratified_analysis.json
+SESSION_LOG.md (this addendum)
+```
+
+**Branch state**: still `claude/phase-a-verification`, NOT merged into main.
