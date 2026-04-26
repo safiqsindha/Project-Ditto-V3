@@ -1,7 +1,8 @@
 # SPEC v1.1 — Supplement to SPEC.md
 
 **Date drafted**: 2026-04-25
-**Status**: DRAFT — pending both-author sign-off
+**Date signed**: 2026-04-25
+**Status**: SIGNED — both-author sign-off recorded; amendments in effect
 **Authors**: Safiq Sindha (lead), Myriam (co-author, Columbia University)
 
 This document is a dated supplement to `SPEC.md` (the immutable pre-registration
@@ -281,8 +282,9 @@ A complete list is in `SESSION_LOG.md` under "Pre-rerun comprehensive audit".
 
 This amendment takes effect once both authors sign:
 
-- [ ] **Safiq Sindha** (lead author) — date:
-- [ ] **Myriam** (co-author, Columbia University) — date:
+- [x] **Safiq Sindha** (lead author) — date: 2026-04-25
+- [x] **Myriam** (co-author, Columbia University) — date: 2026-04-25
+      (joint approval communicated to lead author per session record)
 
 Once signed:
 1. The amendment becomes part of the pre-registration record alongside `SPEC.md`.

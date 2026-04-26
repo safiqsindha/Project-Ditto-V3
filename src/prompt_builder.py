@@ -1,9 +1,16 @@
 """
 Prompt builder for the Ditto v3 constraint-chain evaluation (game domain).
 
-PROMPT_VERSION = "v3.0-game" — versioned separately from v2's v2.0-code.
-The prompt is deliberately generic: no game-domain vocabulary.
-Must work identically on all four game cells with no source-specific branching.
+PROMPT_VERSION = "v3.1-game" — per SPEC_v1.1.md Amendment 1, the prompt
+example was changed from a verb-noun format ("use piece_A or switch to
+phase_B") to an entity-only format. The verb-noun example induced models
+to emit verb-noun phrases that could not match the reference distribution's
+stored entity vocabulary. The new prompt aligns the model's output space
+with the reference's action space.
+
+Versioned separately from v2's v2.0-code. The prompt is deliberately
+generic: no game-domain vocabulary. Must work identically on all four
+game cells with no source-specific branching.
 
 Adapted from v2 prompt_builder.py: "pipeline" → "sequential decision process".
 """
@@ -12,7 +19,7 @@ from __future__ import annotations
 
 import re
 
-PROMPT_VERSION = "v3.0-game"
+PROMPT_VERSION = "v3.1-game"
 
 SYSTEM_PROMPT = """You are reasoning about a sequential decision process that operates
 under a sequence of changing constraints. At each step, new constraints
@@ -68,13 +75,21 @@ def build_prompt(rendered_steps: str, cutoff_k: int) -> str:
 
     The system prompt is kept separate; this function returns only the
     user message.
+
+    Prompt format (PROMPT_VERSION="v3.1-game", per SPEC_v1.1 Amendment 1):
+    asks for an entity label only — no verb prefix. Reference distribution
+    stores entity nouns (piece_A, chain_B, phase_endgame, etc.); aligning
+    the model's output space avoids the v3.0-game vocabulary mismatch
+    that produced 0% match rate at Phase 1.
     """
     return (
         f"{rendered_steps.rstrip()}\n"
         "\n"
         "---\n"
         "\n"
-        f"Given the state above, propose the next adaptation for this sequential\n"
-        f"decision process at step {cutoff_k + 1}. Output only the action label "
-        '(e.g., "use piece_A" or "switch to phase_B"). No explanation.'
+        f"Given the state above, what is the most likely entity (resource, tool,\n"
+        f"phase, or coordination tag) at step {cutoff_k + 1}?\n"
+        f"Output only a single token like piece_A, chain_B, formation_C,\n"
+        f"phase_endgame, or progress_remaining.\n"
+        f"No verbs, no explanation."
     )

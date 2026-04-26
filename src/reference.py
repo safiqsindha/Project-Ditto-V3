@@ -213,8 +213,14 @@ class ReferenceDistribution:
         """
         Build a reference distribution from a list of real chain dicts.
 
-        Each chain must have 'constraints' (list of dicts) and 'focal_action'.
-        Implementation called during Session 8.
+        Per SPEC_v1.1 Amendment 2: focal_action is RECOMPUTED on-the-fly
+        from constraints[cutoff_k] (the prediction target — first UNSHOWN
+        constraint). The chain JSONLs' stored 'focal_action' field contains
+        the OLD off-by-one value (entity at constraints[cutoff_k - 1]) and
+        is intentionally NOT read here. Stored field is retained on disk
+        as a deprecated audit trail.
+
+        Each chain must have 'constraints' (list of dicts) and 'cutoff_k'.
         """
         counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         total = 0
@@ -226,9 +232,15 @@ class ReferenceDistribution:
             # Defensive cutoff handling: clamp to valid range. Fallback to
             # length // 2 (matches chain generation default) if missing.
             cutoff_k = chain.get("cutoff_k") or max(1, len(constraints) // 2)
-            if cutoff_k <= 0 or cutoff_k > len(constraints):
+            # Need cutoff_k < len(constraints) so constraints[cutoff_k] exists
+            # as the prediction target (post-Amendment-2 semantics).
+            if cutoff_k <= 0 or cutoff_k >= len(constraints):
                 continue
-            focal_action = chain.get("focal_action", "")
+
+            # SPEC_v1.1 Amendment 2: focal_action = entity at constraints[cutoff_k]
+            # (NOT chain['focal_action'], which holds the deprecated cutoff_k - 1
+            # interpretation from chain generation in Session 7).
+            focal_action = extract_entity_from_constraint(constraints[cutoff_k])
             if not focal_action:
                 continue
 
@@ -258,8 +270,12 @@ class ReferenceDistribution:
 
         for chain in chains:
             constraints = chain.get("constraints", [])
-            cutoff_k = chain.get("cutoff_k", len(constraints) // 2)
             if not constraints:
+                continue
+            cutoff_k = chain.get("cutoff_k") or max(1, len(constraints) // 2)
+            # Per SPEC_v1.1 Amendment 2: cutoff_k indexes prediction target
+            # constraints[cutoff_k]; need < len for it to exist.
+            if cutoff_k <= 0 or cutoff_k >= len(constraints):
                 continue
             _, level = self.lookup_with_backoff(constraints, cutoff_k)
             level_counts[level] += 1

@@ -175,12 +175,21 @@ def score_layer1(
     Score one model response against the reference distribution (Layer 1).
 
     Returns dict with top_k_match (0/1), constraint_type, and top_k_actions.
+
+    Per SPEC_v1.1 Amendment 2: cutoff_constraint is the PREDICTION TARGET at
+    constraints[cutoff_k] — the first UNSHOWN constraint after the prompt
+    prefix — not constraints[cutoff_k - 1] (which is the LAST SHOWN constraint
+    and is already visible to the model in the prompt).
     """
     constraints = chain.get("constraints", [])
-    if not constraints or cutoff_k <= 0 or cutoff_k > len(constraints):
+    # Need cutoff_k < len(constraints) so constraints[cutoff_k] exists.
+    # (Old behavior allowed cutoff_k == len(constraints), which now would be
+    # out-of-bounds for the prediction target.)
+    if not constraints or cutoff_k <= 0 or cutoff_k >= len(constraints):
         return {"top_k_match": None, "constraint_type": None, "error": "invalid cutoff"}
 
-    cutoff_constraint = constraints[cutoff_k - 1]
+    # SPEC_v1.1 Amendment 2: prediction target is constraints[cutoff_k]
+    cutoff_constraint = constraints[cutoff_k]
     constraint_type = cutoff_constraint.get("type", "")
 
     top_k_actions, backoff_level = dist.lookup_with_backoff(constraints, cutoff_k, k=TOP_K)
@@ -472,8 +481,14 @@ def score_all(
                 bucket["real_l2"].append(real["l2_coupled"])
                 bucket["shuffled_l2"].append(shuf["l2_coupled"])
 
-    # Build paired McNemar results per cell
-    cell_results: dict[str, dict] = {}
+    # Build paired McNemar results per cell, separated into primary
+    # (T=0.0/seed=42) and variance_study (T=0.5/seed=1337, T=0.5/seed=7919)
+    # per SPEC_v1.1 Amendment 3 / SPEC §Models and Evaluation Parameters.
+    primary_cells: dict[str, dict] = {}
+    variance_study: dict[str, dict] = {}
+
+    PRIMARY_CONFIG_KEY = "T0.0_seed42"
+
     for (model, source, config_key), bucket in per_cell.items():
         l1_test = mcnemar_test(bucket["real_l1"], bucket["shuffled_l1"])
         l1_act_test = mcnemar_test(
@@ -483,33 +498,55 @@ def score_all(
 
         gap = l1_act_test.get("gap", 0.0) if "error" not in l1_act_test else 0.0
         pval_raw = l1_act_test.get("p_value", 1.0) if "error" not in l1_act_test else 1.0
-        pval_bonferroni = apply_bonferroni(pval_raw, bonferroni_divisor)
 
-        label = f"{model}::{source}::{config_key}"
-        cell_results[label] = {
+        is_primary = (config_key == PRIMARY_CONFIG_KEY)
+        # Bonferroni applies to primary cells only. Variance study results
+        # are descriptive (SPEC §Models and Evaluation Parameters lines
+        # 472-477: "descriptive only; not in primary Bonferroni family").
+        if is_primary:
+            pval_bonferroni = apply_bonferroni(pval_raw, bonferroni_divisor)
+            tier = classify_outcome_tier(gap, pval_bonferroni)
+        else:
+            pval_bonferroni = None
+            tier = None
+
+        cell_data = {
             "layer1": l1_test,
             "layer1_actionable": l1_act_test,
-            "layer1_actionable_bonferroni": {
-                **l1_act_test,
-                "p_value_bonferroni": round(pval_bonferroni, 6),
-                "bonferroni_divisor": bonferroni_divisor,
-                "significant_bonferroni": bool(pval_bonferroni < 0.05),
-            },
             "layer2": l2_test,
-            "outcome_tier": classify_outcome_tier(gap, pval_bonferroni),
             "diagnostics": {
                 "n_base_chains": bucket["n_base_chains"],
                 "n_pairs_total": len(bucket["real_l1"]),
                 "n_pairs_actionable": len(bucket["real_l1_actionable"]),
+                "n_pairs_l2": len(bucket["real_l2"]),
                 "missing_real": bucket["missing_real"],
                 "missing_shuffled": bucket["missing_shuffled"],
             },
         }
 
+        if is_primary:
+            cell_data["layer1_actionable_bonferroni"] = {
+                **l1_act_test,
+                "p_value_bonferroni": round(pval_bonferroni, 6),
+                "bonferroni_divisor": bonferroni_divisor,
+                "significant_bonferroni": bool(pval_bonferroni < 0.05),
+            }
+            cell_data["outcome_tier"] = tier
+            # Primary key strips the (always-same) config suffix so the
+            # 4 primary cells form a clean Bonferroni family of size 4.
+            primary_cells[f"{model}::{source}"] = cell_data
+        else:
+            cell_data["note"] = (
+                "variance_study config — descriptive only; "
+                "not in Bonferroni family per SPEC v1.1 Amendment 3"
+            )
+            variance_study[f"{model}::{source}::{config_key}"] = cell_data
+
     return {
         "n_results": len(results),
-        "bonferroni_divisor": bonferroni_divisor,
-        "per_cell": cell_results,
+        "bonferroni_divisor_primary": bonferroni_divisor,
+        "primary_cells": primary_cells,
+        "variance_study": variance_study,
     }
 
 
@@ -556,11 +593,25 @@ if __name__ == "__main__":
 
     print(f"\nResults written to {args.out}")
 
-    print("\n=== Per-cell results ===")
-    for label, s in sorted(scored.get("per_cell", {}).items()):
+    # Primary cells: hypothesis-test results, Bonferroni-corrected
+    print("\n=== PRIMARY cells (Bonferroni divisor "
+          f"{scored.get('bonferroni_divisor_primary')}) ===")
+    for label, s in sorted(scored.get("primary_cells", {}).items()):
         l1a = s.get("layer1_actionable_bonferroni", {})
         gap = l1a.get("gap", "N/A")
         p_bon = l1a.get("p_value_bonferroni", "N/A")
         tier = s.get("outcome_tier", "?")
         sig = "*" if l1a.get("significant_bonferroni") else " "
-        print(f"  {label:55s}  gap={gap:>7}  p_bon={p_bon:>8}  {sig} {tier}")
+        n_act = s.get("diagnostics", {}).get("n_pairs_actionable", "N/A")
+        print(f"  {label:45s}  n_act={n_act:>5}  gap={gap:>7}  p_bon={p_bon:>8}  {sig} {tier}")
+
+    # Variance study: descriptive only, no Bonferroni
+    var_study = scored.get("variance_study", {})
+    if var_study:
+        print("\n=== VARIANCE STUDY (descriptive only — not in Bonferroni family) ===")
+        for label, s in sorted(var_study.items()):
+            l1a = s.get("layer1_actionable", {})
+            gap = l1a.get("gap", "N/A")
+            p_raw = l1a.get("p_value", "N/A")
+            n_act = s.get("diagnostics", {}).get("n_pairs_actionable", "N/A")
+            print(f"  {label:55s}  n_act={n_act:>5}  gap={gap:>7}  p_raw={p_raw:>8}")
