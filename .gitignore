@@ -1,0 +1,28 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.pkl
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ipynb_checkpoints/
+.cache/
+
+# Large local data files — not tracked in git
+# (directory structure is tracked via .gitkeep files)
+data/chess_standard/games.jsonl
+data/chess960/games.jsonl
+data/checkers_american/games.jsonl
+data/draughts_intl/games.jsonl
+data/checkers_american/raw/*.pdn
+data/draughts_intl/raw/*.pdn
+results/raw/**/*.json
+results/blinded/**/*.json
+results/scored.json
+results/supplementary.json
+# Chain data files (large — not in git)
+chains/real/**/*.jsonl
+chains/shuffled/**/*.jsonl
+.claude/
