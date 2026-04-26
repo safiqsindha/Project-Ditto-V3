@@ -55,7 +55,9 @@ EVAL_CONFIGS: list[dict] = [
 
 _BACKOFF_DELAYS: list[float] = [2.0, 4.0, 8.0, 16.0]
 
-_CUSTOM_ID_SEP = "||"
+# Anthropic Batches API requires custom_id matching ^[a-zA-Z0-9_-]{1,64}$.
+# `-` is allowed and doesn't collide with chain_ids (which use only [a-z0-9_]).
+_CUSTOM_ID_SEP = "-"
 
 _BATCH_POLL_INTERVAL = 60
 
