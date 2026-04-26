@@ -143,9 +143,24 @@ def render_chain(constraints: list[Constraint], perspective: str = "agent") -> s
     return rendered
 
 
+# Cell name → abstract perspective label (prevents game-domain leakage in chain header)
+_CELL_TO_PERSPECTIVE: dict[str, str] = {
+    "chess_standard":    "sequential_process_A",
+    "chess960":          "sequential_process_B",
+    "checkers_american": "sequential_process_C",
+    "draughts_intl":     "sequential_process_D",
+}
+
+
 def render_trajectory_chain(constraints: list[Constraint], source: str = "chess_standard") -> str:
-    """Convenience wrapper for render_chain using source as the perspective label."""
-    return render_chain(constraints, perspective=source)
+    """Convenience wrapper for render_chain using an abstract perspective label.
+
+    Cell names like 'chess960' are mapped to abstract labels (sequential_process_*)
+    before being written into the chain header, preventing leakage vocabulary from
+    appearing in rendered output.
+    """
+    perspective = _CELL_TO_PERSPECTIVE.get(source, "sequential_process_A")
+    return render_chain(constraints, perspective=perspective)
 
 
 # ---------------------------------------------------------------------------

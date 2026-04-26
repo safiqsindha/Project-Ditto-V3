@@ -1,0 +1,32 @@
+{
+  "cell": "checkers_american",
+  "variant": "checkers_american",
+  "games_scanned": 300,
+  "windows_scanned": 57,
+  "valid_windows": 50,
+  "pass_rate": 0.8771929824561403,
+  "leakage_failures": 0,
+  "chains_collected": 50,
+  "type_distribution": {
+    "ToolAvailability": 157,
+    "CoordinationDependency": 251,
+    "ResourceBudget": 216,
+    "SubGoalTransition": 164,
+    "OptimizationCriterion": 168,
+    "InformationState": 83
+  },
+  "type_per_chain": {
+    "ToolAvailability": 3.14,
+    "CoordinationDependency": 5.02,
+    "ResourceBudget": 4.32,
+    "SubGoalTransition": 3.28,
+    "OptimizationCriterion": 3.36,
+    "InformationState": 1.66
+  },
+  "gate6_checks": {
+    "leakage_100pct": true,
+    "pass_rate_gte_80pct": true,
+    "all_6_types_present": true,
+    "collected_50_chains": true
+  }
+}

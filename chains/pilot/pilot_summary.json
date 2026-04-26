@@ -1,0 +1,133 @@
+{
+  "gate6_passed": true,
+  "cells": {
+    "chess_standard": {
+      "cell": "chess_standard",
+      "variant": "chess_standard",
+      "games_scanned": 300,
+      "windows_scanned": 57,
+      "valid_windows": 50,
+      "pass_rate": 0.8771929824561403,
+      "leakage_failures": 0,
+      "chains_collected": 50,
+      "type_distribution": {
+        "CoordinationDependency": 316,
+        "OptimizationCriterion": 189,
+        "ResourceBudget": 248,
+        "SubGoalTransition": 146,
+        "ToolAvailability": 141,
+        "InformationState": 87
+      },
+      "type_per_chain": {
+        "CoordinationDependency": 6.32,
+        "OptimizationCriterion": 3.78,
+        "ResourceBudget": 4.96,
+        "SubGoalTransition": 2.92,
+        "ToolAvailability": 2.82,
+        "InformationState": 1.74
+      },
+      "gate6_checks": {
+        "leakage_100pct": true,
+        "pass_rate_gte_80pct": true,
+        "all_6_types_present": true,
+        "collected_50_chains": true
+      }
+    },
+    "chess960": {
+      "cell": "chess960",
+      "variant": "chess960",
+      "games_scanned": 300,
+      "windows_scanned": 52,
+      "valid_windows": 50,
+      "pass_rate": 0.9615384615384616,
+      "leakage_failures": 0,
+      "chains_collected": 50,
+      "type_distribution": {
+        "CoordinationDependency": 294,
+        "OptimizationCriterion": 191,
+        "ResourceBudget": 234,
+        "SubGoalTransition": 140,
+        "InformationState": 87,
+        "ToolAvailability": 151
+      },
+      "type_per_chain": {
+        "CoordinationDependency": 5.88,
+        "OptimizationCriterion": 3.82,
+        "ResourceBudget": 4.68,
+        "SubGoalTransition": 2.8,
+        "InformationState": 1.74,
+        "ToolAvailability": 3.02
+      },
+      "gate6_checks": {
+        "leakage_100pct": true,
+        "pass_rate_gte_80pct": true,
+        "all_6_types_present": true,
+        "collected_50_chains": true
+      }
+    },
+    "checkers_american": {
+      "cell": "checkers_american",
+      "variant": "checkers_american",
+      "games_scanned": 300,
+      "windows_scanned": 57,
+      "valid_windows": 50,
+      "pass_rate": 0.8771929824561403,
+      "leakage_failures": 0,
+      "chains_collected": 50,
+      "type_distribution": {
+        "ToolAvailability": 157,
+        "CoordinationDependency": 251,
+        "ResourceBudget": 216,
+        "SubGoalTransition": 164,
+        "OptimizationCriterion": 168,
+        "InformationState": 83
+      },
+      "type_per_chain": {
+        "ToolAvailability": 3.14,
+        "CoordinationDependency": 5.02,
+        "ResourceBudget": 4.32,
+        "SubGoalTransition": 3.28,
+        "OptimizationCriterion": 3.36,
+        "InformationState": 1.66
+      },
+      "gate6_checks": {
+        "leakage_100pct": true,
+        "pass_rate_gte_80pct": true,
+        "all_6_types_present": true,
+        "collected_50_chains": true
+      }
+    },
+    "draughts_intl": {
+      "cell": "draughts_intl",
+      "variant": "draughts_intl",
+      "games_scanned": 300,
+      "windows_scanned": 53,
+      "valid_windows": 50,
+      "pass_rate": 0.9433962264150944,
+      "leakage_failures": 0,
+      "chains_collected": 50,
+      "type_distribution": {
+        "CoordinationDependency": 285,
+        "OptimizationCriterion": 201,
+        "ResourceBudget": 237,
+        "SubGoalTransition": 154,
+        "ToolAvailability": 155,
+        "InformationState": 98
+      },
+      "type_per_chain": {
+        "CoordinationDependency": 5.7,
+        "OptimizationCriterion": 4.02,
+        "ResourceBudget": 4.74,
+        "SubGoalTransition": 3.08,
+        "ToolAvailability": 3.1,
+        "InformationState": 1.96
+      },
+      "gate6_checks": {
+        "leakage_100pct": true,
+        "pass_rate_gte_80pct": true,
+        "all_6_types_present": true,
+        "collected_50_chains": true
+      }
+    }
+  }
+}

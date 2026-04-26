@@ -1,0 +1,32 @@
+{
+  "cell": "draughts_intl",
+  "variant": "draughts_intl",
+  "games_scanned": 300,
+  "windows_scanned": 53,
+  "valid_windows": 50,
+  "pass_rate": 0.9433962264150944,
+  "leakage_failures": 0,
+  "chains_collected": 50,
+  "type_distribution": {
+    "CoordinationDependency": 285,
+    "OptimizationCriterion": 201,
+    "ResourceBudget": 237,
+    "SubGoalTransition": 154,
+    "ToolAvailability": 155,
+    "InformationState": 98
+  },
+  "type_per_chain": {
+    "CoordinationDependency": 5.7,
+    "OptimizationCriterion": 4.02,
+    "ResourceBudget": 4.74,
+    "SubGoalTransition": 3.08,
+    "ToolAvailability": 3.1,
+    "InformationState": 1.96
+  },
+  "gate6_checks": {
+    "leakage_100pct": true,
+    "pass_rate_gte_80pct": true,
+    "all_6_types_present": true,
+    "collected_50_chains": true
+  }
+}

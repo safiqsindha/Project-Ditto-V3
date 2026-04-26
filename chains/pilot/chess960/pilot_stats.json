@@ -1,0 +1,32 @@
+{
+  "cell": "chess960",
+  "variant": "chess960",
+  "games_scanned": 300,
+  "windows_scanned": 52,
+  "valid_windows": 50,
+  "pass_rate": 0.9615384615384616,
+  "leakage_failures": 0,
+  "chains_collected": 50,
+  "type_distribution": {
+    "CoordinationDependency": 294,
+    "OptimizationCriterion": 191,
+    "ResourceBudget": 234,
+    "SubGoalTransition": 140,
+    "InformationState": 87,
+    "ToolAvailability": 151
+  },
+  "type_per_chain": {
+    "CoordinationDependency": 5.88,
+    "OptimizationCriterion": 3.82,
+    "ResourceBudget": 4.68,
+    "SubGoalTransition": 2.8,
+    "InformationState": 1.74,
+    "ToolAvailability": 3.02
+  },
+  "gate6_checks": {
+    "leakage_100pct": true,
+    "pass_rate_gte_80pct": true,
+    "all_6_types_present": true,
+    "collected_50_chains": true
+  }
+}

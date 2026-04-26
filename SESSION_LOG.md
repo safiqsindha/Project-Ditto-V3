@@ -295,3 +295,55 @@ SESSION_LOG.md (this entry)
 - Spot-check 3–5 rendered chains per cell for qualitative correctness
 - Freeze T-code: git tag `T-code-game-v1.0-frozen` on translation.py + aggregation.py + renderer.py
 - Gate 6: pilot inspection passes (no leakage, ≥80% chain validity, plausible constraint distributions)
+
+---
+
+## Session 6 — 2026-04-25
+
+**Tasks completed:**
+- Generated 50 pilot chains per cell (all 4 cells) using `scripts/generate_pilot_chains.py`
+- Inspected constraint type distribution: all 6 types present across all cells, distributions reasonable
+  - chess_standard: CD 6.32/chain, OC 3.78/chain, RB 4.96/chain, SGT 2.92/chain, TA 2.82/chain, IS 1.74/chain
+  - chess960:       CD 5.88/chain, OC 3.82/chain, RB 4.68/chain, SGT 2.80/chain, TA 3.02/chain, IS 1.74/chain
+  - checkers_american: CD 5.02/chain, OC 3.36/chain, RB 4.32/chain, SGT 3.28/chain, TA 3.14/chain, IS 1.66/chain
+  - draughts_intl:  CD 5.70/chain, OC 4.02/chain, RB 4.74/chain, SGT 3.08/chain, TA 3.10/chain, IS 1.96/chain
+- Leakage check: 0 failures across all 200 chains (50 per cell × 4 cells)
+- Bug found and fixed: renderer.py `render_trajectory_chain()` was passing raw cell name (e.g.
+  "chess960") as perspective label → leakage vocabulary triggered on chain header
+  Fix: added `_CELL_TO_PERSPECTIVE` mapping (chess960 → "sequential_process_B", etc.)
+- Frozen T-code at git tag `T-code-game-v1.0-frozen`:
+  - `src/translation.py` (translate_event, translate_trajectory, all dataclasses)
+  - `src/aggregation.py` (compute_windows, aggregate_trajectory, extract_all_windows, sample_window)
+  - `src/renderer.py` (render_chain, render_trajectory_chain, check_leakage, _CELL_TO_PERSPECTIVE)
+
+**Gate status:** Gate 6 PASSED — all four cells pass all pilot inspection criteria
+  - chess_standard:    pass_rate=87.7%, chains=50/50, leakage_failures=0, types=6/6 ✅
+  - chess960:          pass_rate=96.2%, chains=50/50, leakage_failures=0, types=6/6 ✅
+  - checkers_american: pass_rate=87.7%, chains=50/50, leakage_failures=0, types=6/6 ✅
+  - draughts_intl:     pass_rate=94.3%, chains=50/50, leakage_failures=0, types=6/6 ✅
+
+**Files created/modified:**
+```
+src/renderer.py (added _CELL_TO_PERSPECTIVE mapping, updated render_trajectory_chain)
+scripts/generate_pilot_chains.py (new)
+chains/pilot/chess_standard/pilot_chains.jsonl (50 chains)
+chains/pilot/chess_standard/pilot_stats.json
+chains/pilot/chess960/pilot_chains.jsonl (50 chains)
+chains/pilot/chess960/pilot_stats.json
+chains/pilot/checkers_american/pilot_chains.jsonl (50 chains)
+chains/pilot/checkers_american/pilot_stats.json
+chains/pilot/draughts_intl/pilot_chains.jsonl (50 chains)
+chains/pilot/draughts_intl/pilot_stats.json
+chains/pilot/pilot_summary.json
+SESSION_LOG.md (this entry)
+```
+Git tag: T-code-game-v1.0-frozen
+
+**Blockers / open questions:** none
+
+**Next session (Session 7) planned tasks:**
+- Generate full chains: 1,200 real chains per cell × 4 cells = 4,800 chains
+- For each valid chain, generate 3 shuffled variants (seeds 42, 1337, 7919) = 14,400 shuffled
+- Write to chains/real/{cell}/*.jsonl and chains/shuffled/{cell}/*.jsonl
+- Each JSONL record includes: chain_id, cell, game_id, variant, length, constraint_types, rendered
+- Shuffled records include: chain_id, match_id (= real chain_id), seed, rendered
