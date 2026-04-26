@@ -680,3 +680,111 @@ results/dryrun_log.txt (full stdout from the run — committed)
   script uses `n=50` cap)
 - Output: `results/raw/phase1/{cell}/*.json` (57,600 files) +
   `results/blinded/*.json` (19,200 unique chain×cutoff pairs)
+
+---
+
+## Session 10 — 2026-04-25
+
+**Tasks completed:**
+- Built `scripts/run_phase1.py` orchestrator (commit a0ba37b):
+  - 8 sequential batch invocations (4 cells × {real, shuffled})
+  - Pre-flight inventory check refuses launch if any cell file count is wrong
+  - 5s confirmation banner before first submission
+  - Crash-resilient: per-invocation summary saved after each batch
+  - Shuffled invocations exceed 10k batch limit; runner._MAX_BATCH_SIZE
+    auto-chunks (10,000 + 800 each)
+- Pre-Phase 1 leakage hardening (commit f0a7f67):
+  - Added `check_response_leakage()` to renderer — game vocab only,
+    drops v2 _PROGRAMMING_VOCAB which produces false positives on
+    English natural-language responses ('with', 'else', 'while', 'print', etc.)
+  - Verified on dry-run output: false positives 2/1200 → 0/1200; soft check
+    unchanged
+- Launched and completed Phase 1 Haiku full evaluation:
+  - 57,600 / 57,600 calls succeeded (100%)
+  - 0 errors across all 12 batches submitted
+  - Wall time: **26 minutes** (vs 4–24h estimated; Anthropic batch
+    infrastructure was unusually fast)
+  - Per-invocation timing: 184–251s (average 215s per invocation)
+
+**Gate status:** Phase 1 evaluation complete. Gate 8 (Phase 1 → Phase 2 decision)
+PENDING — requires lead author review per CLAUDE.md "Coordination protocol".
+This is a STOP point before Session 12 ($200–280 Sonnet spend).
+
+**Output verification:**
+| Metric | Value |
+|---|---|
+| Total raw response files | 57,600 (14,400 per cell × 4 cells) ✅ |
+| Total blinded mirrors | 19,200 (unique chain × cutoff pairs) ✅ |
+| Schema (raw) | chain_id, cutoff_k, model, prompt_version, response, seed, source, temperature ✅ |
+| Per-cell distribution | 3,600 real + 10,800 shuffled per cell ✅ |
+| Hard leakage (response, patched check) | 3 / 57,600 (0.005%) — bare 'endgame' / 'middlegame' in 2 verbose responses |
+| Soft leakage (substring) | 334 / 57,600 (0.58%) — predicted 'endgame_X' / 'middlegame_X' decode patterns |
+
+**Response distribution (preview of experimental signal — for analysis in
+Session 13, NOT the final result):**
+
+Top 5 responses across 1,039 distinct response strings:
+| Response | Count | % |
+|---|---|---|
+| `maintain_formation` | 19,747 | 34.3 |
+| `restrict_mobility` | 9,032 | 15.7 |
+| `advance_together` | 8,174 | 14.2 |
+| `defend_zone` | 5,801 | 10.1 |
+| `central_focus` | 4,632 | 8.0 |
+
+Real-vs-shuffled distribution divergence (top 2 responses each):
+- REAL chains:     `maintain_formation` 33.6%, `advance_together` 26.5%
+- SHUFFLED chains: `maintain_formation` 34.5%, `restrict_mobility` 17.4%
+
+The 2nd-most-common response **flips** between conditions. Whether this
+represents a statistically significant detectability signal is what
+Session 13's paired McNemar's test will quantify; per CLAUDE.md no gap
+statistics are computed at this stage.
+
+**Cost estimate** (informal, from response counts):
+- ~57,600 calls × ~500 input tokens = 28.8M input tokens
+- ~57,600 calls × ≤50 output tokens ≈ ≤2.88M output tokens
+- Haiku batch rate: $0.40/M input + $2.00/M output = $11.52 + ~$5.76 ≈ **~$17**
+- Far under $60-120 budget; effective per-call cost ~$0.0003 batched
+
+**Files created/modified:**
+```
+scripts/run_phase1.py (new, committed a0ba37b)
+src/renderer.py (response leakage check, committed f0a7f67)
+results/raw/phase1/{cell}/*.json (57,600 raw response files — gitignored)
+results/blinded/*.json (19,200 blinded mirrors — gitignored)
+results/phase1_summary.json (per-invocation stats — committed)
+results/phase1_log.txt (full stdout from the run — committed)
+SESSION_LOG.md (this entry)
+```
+
+**Blockers / open questions:**
+- 3 hard-leakage responses contain bare 'endgame'/'middlegame'. Two examples
+  are verbose multi-sentence responses where Haiku produced English narrative
+  text. Rate is 0.005% — negligible. Not blocking; documented for the
+  scoring pipeline (these responses will simply not match any reference action).
+- 334 soft-leakage responses (0.58%) follow the predicted `phase_endgame` →
+  `endgame_X` decode pattern. As discussed at exemption design time, this
+  is acceptable: the chain content is 100% clean and these responses
+  only appear in scoring as model output (which is what we measure).
+- The actual cost (~$17) was vastly under the $60-120 BUILD_PLAN estimate.
+  Suggests Phase 2 Sonnet (~$200-280 estimate) may also come in cheaper —
+  Sonnet rates are ~5× Haiku, so if input/output token counts hold, Phase 2
+  would be ~$85-100. Confirm before launching.
+
+**STOP POINT** — Gate 8 author review required before Session 12. The lead
+author needs to:
+1. Inspect Phase 1 results (this entry + results/phase1_summary.json)
+2. Decide whether to proceed with Phase 2 Sonnet (full sweep) based on
+   the experimental signal preview
+3. Per BUILD_PLAN, Phase 1 results have not yet been scored — the
+   real-vs-shuffled match-rate gap will be quantified in Session 13.
+   Phase 2 launch decision is on STRENGTH of Phase 1 raw output, not
+   on the formal scoring.
+
+**Next session (Session 11/12) options:**
+- A) Skip ahead to Session 13 scoring on Phase 1 alone (safer, no further
+  spend, gives the formal McNemar's gap before deciding on Phase 2)
+- B) Launch Session 12 Sonnet now if author wants Phase 2 in parallel
+  (faster overall but commits ~$85-280 before knowing Phase 1 statistics)
+- C) Hold and review

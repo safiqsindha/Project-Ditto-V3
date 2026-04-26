@@ -1,0 +1,77 @@
+{
+  "phase": "phase1",
+  "model": "haiku",
+  "invocations": [
+    {
+      "cell": "chess_standard",
+      "kind": "real",
+      "submitted": 3600,
+      "completed": 3600,
+      "errors": 0,
+      "elapsed_seconds": 184.3
+    },
+    {
+      "cell": "chess_standard",
+      "kind": "shuffled",
+      "submitted": 10800,
+      "completed": 10800,
+      "errors": 0,
+      "elapsed_seconds": 190.0
+    },
+    {
+      "cell": "chess960",
+      "kind": "real",
+      "submitted": 3600,
+      "completed": 3600,
+      "errors": 0,
+      "elapsed_seconds": 244.3
+    },
+    {
+      "cell": "chess960",
+      "kind": "shuffled",
+      "submitted": 10800,
+      "completed": 10800,
+      "errors": 0,
+      "elapsed_seconds": 250.7
+    },
+    {
+      "cell": "checkers_american",
+      "kind": "real",
+      "submitted": 3600,
+      "completed": 3600,
+      "errors": 0,
+      "elapsed_seconds": 184.1
+    },
+    {
+      "cell": "checkers_american",
+      "kind": "shuffled",
+      "submitted": 10800,
+      "completed": 10800,
+      "errors": 0,
+      "elapsed_seconds": 190.5
+    },
+    {
+      "cell": "draughts_intl",
+      "kind": "real",
+      "submitted": 3600,
+      "completed": 3600,
+      "errors": 0,
+      "elapsed_seconds": 123.9
+    },
+    {
+      "cell": "draughts_intl",
+      "kind": "shuffled",
+      "submitted": 10800,
+      "completed": 10800,
+      "errors": 0,
+      "elapsed_seconds": 191.1
+    }
+  ],
+  "totals": {
+    "submitted": 57600,
+    "completed": 57600,
+    "errors": 0,
+    "wall_time_seconds": 1558.9
+  },
+  "partial_wall_time_seconds": 1558.9
+}
