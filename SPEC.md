@@ -523,7 +523,7 @@ explanation. v4 directions are pre-specified in `PROGRAM_OUTLOOK.md`.
 ## Authors and Review
 
 - Lead: Safiq Sindha (Microsoft Azure Hardware PM, independent research)
-- Co-author: [Co-author name] (Columbia University, systems engineering;
+- Co-author: Myriam (Columbia University, systems engineering;
   Boeing FT) — reviews all major decisions; on all v3 publications
 - Spec drafts circulated to co-author before commit
 - Pre-registration commit signed off by both authors before evaluation
@@ -531,6 +531,6 @@ explanation. v4 directions are pre-specified in `PROGRAM_OUTLOOK.md`.
 
 ---
 
-*Pre-registration v1.0 — drafted [DATE]. Prior work:
+*Pre-registration v1.0 — drafted April 25, 2026. Prior work:
 [Project Ditto v1](https://github.com/safiqsindha/Project-Ditto) (Pokémon),
 [Project Ditto v2](https://github.com/safiqsindha/Project-Ditto-v2) (programming).*

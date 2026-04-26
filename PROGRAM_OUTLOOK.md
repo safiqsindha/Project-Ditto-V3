@@ -241,5 +241,5 @@ inclusion in v4 planning.
 
 ---
 
-*Drafted [DATE]. Will be revised after v3 results, before v4 spec
+*Drafted April 25, 2026. Will be revised after v3 results, before v4 spec
 freeze.*
