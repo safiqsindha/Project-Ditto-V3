@@ -1,0 +1,186 @@
+illegal san: 'O-O' in r1krb2b/pp3ppp/2pqnn2/4p3/2PpP3/1P1P1PP1/P1N4P/RQKRB1NB b KQkq - 0 8 while parsing <Game at 0x106b48eb0 ('?' vs. '?', '????.??.??' at '?')>
+Session 7 — Full chain generation
+Target: 1200 real chains × 4 cells + 3 shuffled per real = 4800 real + 14400 shuffled = 19200 chain files
+
+
+============================================================
+Cell: chess_standard  (target: 1200 real chains)
+============================================================
+  Loading trajectories from games.jsonl (limit 2000) ...
+  Loaded 2000 trajectories in 21.9s
+  ... 100/1200 chains (51.3/s, 2s elapsed, 108 windows scanned)
+  ... 200/1200 chains (52.8/s, 4s elapsed, 213 windows scanned)
+  ... 300/1200 chains (53.5/s, 6s elapsed, 319 windows scanned)
+  ... 400/1200 chains (53.6/s, 7s elapsed, 423 windows scanned)
+  ... 500/1200 chains (53.4/s, 9s elapsed, 530 windows scanned)
+  ... 600/1200 chains (53.6/s, 11s elapsed, 636 windows scanned)
+  ... 700/1200 chains (53.6/s, 13s elapsed, 737 windows scanned)
+  ... 800/1200 chains (53.5/s, 15s elapsed, 839 windows scanned)
+  ... 900/1200 chains (53.4/s, 17s elapsed, 947 windows scanned)
+  ... 1000/1200 chains (53.3/s, 19s elapsed, 1052 windows scanned)
+  ... 1100/1200 chains (53.3/s, 21s elapsed, 1155 windows scanned)
+  ... 1200/1200 chains (53.2/s, 23s elapsed, 1260 windows scanned)
+
+  Done in 23s
+  Windows scanned:        1260
+  Real chains written:    1200
+  Shuffled written:       3600
+  Source games used:      269 / 2000
+  Validity pass rate:     95.2%
+  Hard leakage failures:  0
+  Soft leakage warnings:  none ✅
+  Validity failure breakdown:
+    rb_below_min            :    60  (100.0%)
+  Length distribution (saved chains):
+    len=15: 285
+    len=16: 16
+    len=17: 24
+    len=18: 15
+    len=19: 27
+    len=20: 20
+    len=21: 23
+    len=22: 16
+    len=23: 22
+    len=24: 21
+    len=25: 731
+
+============================================================
+Cell: chess960  (target: 1200 real chains)
+============================================================
+  Loading trajectories from games.jsonl (limit 2000) ...
+  Loaded 2000 trajectories in 22.2s
+  ... 100/1200 chains (53.1/s, 2s elapsed, 105 windows scanned)
+  ... 200/1200 chains (53.8/s, 4s elapsed, 210 windows scanned)
+  ... 300/1200 chains (53.0/s, 6s elapsed, 316 windows scanned)
+  ... 400/1200 chains (53.5/s, 7s elapsed, 421 windows scanned)
+  ... 500/1200 chains (53.8/s, 9s elapsed, 530 windows scanned)
+  ... 600/1200 chains (53.6/s, 11s elapsed, 634 windows scanned)
+  ... 700/1200 chains (53.9/s, 13s elapsed, 739 windows scanned)
+  ... 800/1200 chains (53.7/s, 15s elapsed, 846 windows scanned)
+  ... 900/1200 chains (53.9/s, 17s elapsed, 949 windows scanned)
+  ... 1000/1200 chains (53.9/s, 19s elapsed, 1055 windows scanned)
+  ... 1100/1200 chains (54.0/s, 20s elapsed, 1163 windows scanned)
+  ... 1200/1200 chains (53.9/s, 22s elapsed, 1271 windows scanned)
+
+  Done in 22s
+  Windows scanned:        1271
+  Real chains written:    1200
+  Shuffled written:       3600
+  Source games used:      266 / 2000
+  Validity pass rate:     94.4%
+  Hard leakage failures:  0
+  Soft leakage warnings:  none ✅
+  Validity failure breakdown:
+    rb_below_min            :    71  (100.0%)
+  Length distribution (saved chains):
+    len=15: 274
+    len=16: 29
+    len=17: 19
+    len=18: 14
+    len=19: 23
+    len=20: 23
+    len=21: 23
+    len=22: 23
+    len=23: 22
+    len=24: 19
+    len=25: 731
+
+============================================================
+Cell: checkers_american  (target: 1200 real chains)
+============================================================
+  Loading trajectories from games.jsonl (limit 2000) ...
+  Loaded 2000 trajectories in 266.2s
+  ... 100/1200 chains (56.4/s, 2s elapsed, 113 windows scanned)
+  ... 200/1200 chains (56.8/s, 4s elapsed, 227 windows scanned)
+  ... 300/1200 chains (56.9/s, 5s elapsed, 347 windows scanned)
+  ... 400/1200 chains (56.9/s, 7s elapsed, 468 windows scanned)
+  ... 500/1200 chains (56.8/s, 9s elapsed, 587 windows scanned)
+  ... 600/1200 chains (56.8/s, 11s elapsed, 703 windows scanned)
+  ... 700/1200 chains (56.8/s, 12s elapsed, 826 windows scanned)
+  ... 800/1200 chains (56.8/s, 14s elapsed, 940 windows scanned)
+  ... 900/1200 chains (56.6/s, 16s elapsed, 1057 windows scanned)
+  ... 1000/1200 chains (56.3/s, 18s elapsed, 1174 windows scanned)
+  ... 1100/1200 chains (56.3/s, 20s elapsed, 1294 windows scanned)
+  ... 1200/1200 chains (56.2/s, 21s elapsed, 1408 windows scanned)
+
+  Done in 21s
+  Windows scanned:        1408
+  Real chains written:    1200
+  Shuffled written:       3600
+  Source games used:      467 / 2000
+  Validity pass rate:     85.2%
+  Hard leakage failures:  0
+  Soft leakage warnings:  none ✅
+  Validity failure breakdown:
+    rb_below_min            :   208  (100.0%)
+  Length distribution (saved chains):
+    len=15: 231
+    len=16: 66
+    len=17: 56
+    len=18: 69
+    len=19: 50
+    len=20: 63
+    len=21: 40
+    len=22: 73
+    len=23: 69
+    len=24: 60
+    len=25: 423
+
+============================================================
+Cell: draughts_intl  (target: 1200 real chains)
+============================================================
+  Loading trajectories from games.jsonl (limit 2000) ...
+  Loaded 2000 trajectories in 932.8s
+  ... 100/1200 chains (54.9/s, 2s elapsed, 107 windows scanned)
+  ... 200/1200 chains (54.6/s, 4s elapsed, 213 windows scanned)
+  ... 300/1200 chains (54.5/s, 6s elapsed, 324 windows scanned)
+  ... 400/1200 chains (54.3/s, 7s elapsed, 428 windows scanned)
+  ... 500/1200 chains (54.3/s, 9s elapsed, 534 windows scanned)
+  ... 600/1200 chains (54.4/s, 11s elapsed, 642 windows scanned)
+  ... 700/1200 chains (54.4/s, 13s elapsed, 749 windows scanned)
+  ... 800/1200 chains (54.3/s, 15s elapsed, 862 windows scanned)
+  ... 900/1200 chains (54.3/s, 17s elapsed, 970 windows scanned)
+  ... 1000/1200 chains (54.3/s, 18s elapsed, 1075 windows scanned)
+  ... 1100/1200 chains (54.4/s, 20s elapsed, 1184 windows scanned)
+  ... 1200/1200 chains (54.4/s, 22s elapsed, 1290 windows scanned)
+
+  Done in 22s
+  Windows scanned:        1290
+  Real chains written:    1200
+  Shuffled written:       3600
+  Source games used:      201 / 2000
+  Validity pass rate:     93.0%
+  Hard leakage failures:  0
+  Soft leakage warnings:  none ✅
+  Validity failure breakdown:
+    rb_below_min            :    90  (100.0%)
+  Length distribution (saved chains):
+    len=15: 131
+    len=16: 42
+    len=17: 29
+    len=18: 24
+    len=19: 25
+    len=20: 34
+    len=21: 31
+    len=22: 22
+    len=23: 39
+    len=24: 46
+    len=25: 777
+
+============================================================
+SESSION 7 SUMMARY
+============================================================
+  ✅  chess_standard        : real= 1200  shuffled= 3600  pass_rate=95.2%  hard_leakage=0
+  ✅  chess960              : real= 1200  shuffled= 3600  pass_rate=94.4%  hard_leakage=0
+  ✅  checkers_american     : real= 1200  shuffled= 3600  pass_rate=85.2%  hard_leakage=0
+  ✅  draughts_intl         : real= 1200  shuffled= 3600  pass_rate=93.0%  hard_leakage=0
+
+Total real:       4800
+Total shuffled:  14400
+Total files:     19200
+Hard leakage:   0
+Elapsed:        1331s (22.2min)
+
+Summary → /Users/safiqsindha/Desktop/Ditto V3/chains/generation_summary.json
+
+✅ Session 7 COMPLETE — all cells hit target with zero hard leakage.

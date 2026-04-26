@@ -1,0 +1,61 @@
+{
+  "cells": {
+    "chess_standard": {
+      "real_chains": 1200,
+      "unique_state_sigs": 102,
+      "total_chains_contributing": 1200,
+      "level_counts": {
+        "0": 1200,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "non_max_backoff_fraction": 1.0,
+      "passes": true,
+      "reference_path": "data/reference_chess_standard.pkl"
+    },
+    "chess960": {
+      "real_chains": 1200,
+      "unique_state_sigs": 105,
+      "total_chains_contributing": 1200,
+      "level_counts": {
+        "0": 1200,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "non_max_backoff_fraction": 1.0,
+      "passes": true,
+      "reference_path": "data/reference_chess960.pkl"
+    },
+    "checkers_american": {
+      "real_chains": 1200,
+      "unique_state_sigs": 62,
+      "total_chains_contributing": 1200,
+      "level_counts": {
+        "0": 1200,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "non_max_backoff_fraction": 1.0,
+      "passes": true,
+      "reference_path": "data/reference_checkers_american.pkl"
+    },
+    "draughts_intl": {
+      "real_chains": 1200,
+      "unique_state_sigs": 77,
+      "total_chains_contributing": 1200,
+      "level_counts": {
+        "0": 1200,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "non_max_backoff_fraction": 1.0,
+      "passes": true,
+      "reference_path": "data/reference_draughts_intl.pkl"
+    }
+  },
+  "gate8_passed": true
+}

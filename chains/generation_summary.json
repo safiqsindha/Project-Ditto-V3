@@ -1,0 +1,173 @@
+{
+  "cells": {
+    "chess_standard": {
+      "cell": "chess_standard",
+      "real_chains_written": 1200,
+      "shuffled_chains_written": 3600,
+      "windows_scanned": 1260,
+      "invalid_windows": 60,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 60,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
+      "validity_pass_rate": 0.9524,
+      "hard_leakage_failures": 0,
+      "soft_leakage_warnings": {},
+      "type_distribution": {
+        "CoordinationDependency": 7303,
+        "OptimizationCriterion": 4308,
+        "ResourceBudget": 5704,
+        "SubGoalTransition": 3326,
+        "ToolAvailability": 3544,
+        "InformationState": 2057
+      },
+      "length_distribution": {
+        "25": 731,
+        "15": 285,
+        "19": 27,
+        "20": 20,
+        "18": 15,
+        "23": 22,
+        "17": 24,
+        "24": 21,
+        "16": 16,
+        "21": 23,
+        "22": 16
+      },
+      "source_games_used": 269,
+      "elapsed_seconds": 22.6
+    },
+    "chess960": {
+      "cell": "chess960",
+      "real_chains_written": 1200,
+      "shuffled_chains_written": 3600,
+      "windows_scanned": 1271,
+      "invalid_windows": 71,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 71,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
+      "validity_pass_rate": 0.9441,
+      "hard_leakage_failures": 0,
+      "soft_leakage_warnings": {},
+      "type_distribution": {
+        "CoordinationDependency": 7184,
+        "OptimizationCriterion": 4375,
+        "ResourceBudget": 5769,
+        "SubGoalTransition": 3317,
+        "InformationState": 2110,
+        "ToolAvailability": 3517
+      },
+      "length_distribution": {
+        "25": 731,
+        "15": 274,
+        "24": 19,
+        "22": 23,
+        "20": 23,
+        "18": 14,
+        "19": 23,
+        "16": 29,
+        "21": 23,
+        "23": 22,
+        "17": 19
+      },
+      "source_games_used": 266,
+      "elapsed_seconds": 22.3
+    },
+    "checkers_american": {
+      "cell": "checkers_american",
+      "real_chains_written": 1200,
+      "shuffled_chains_written": 3600,
+      "windows_scanned": 1408,
+      "invalid_windows": 208,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 208,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
+      "validity_pass_rate": 0.8523,
+      "hard_leakage_failures": 0,
+      "soft_leakage_warnings": {},
+      "type_distribution": {
+        "ToolAvailability": 3562,
+        "CoordinationDependency": 6161,
+        "ResourceBudget": 5152,
+        "SubGoalTransition": 3796,
+        "OptimizationCriterion": 4206,
+        "InformationState": 2096
+      },
+      "length_distribution": {
+        "20": 63,
+        "21": 40,
+        "15": 231,
+        "25": 423,
+        "18": 69,
+        "24": 60,
+        "17": 56,
+        "22": 73,
+        "19": 50,
+        "16": 66,
+        "23": 69
+      },
+      "source_games_used": 467,
+      "elapsed_seconds": 21.3
+    },
+    "draughts_intl": {
+      "cell": "draughts_intl",
+      "real_chains_written": 1200,
+      "shuffled_chains_written": 3600,
+      "windows_scanned": 1290,
+      "invalid_windows": 90,
+      "validity_failure_breakdown": {
+        "length_below_min": 0,
+        "length_above_max": 0,
+        "sgt_below_min": 0,
+        "ta_below_min": 0,
+        "rb_below_min": 90,
+        "timestamp_order": 0,
+        "consecutive_duplicate": 0
+      },
+      "validity_pass_rate": 0.9302,
+      "hard_leakage_failures": 0,
+      "soft_leakage_warnings": {},
+      "type_distribution": {
+        "CoordinationDependency": 6656,
+        "OptimizationCriterion": 4755,
+        "ResourceBudget": 5882,
+        "SubGoalTransition": 3718,
+        "ToolAvailability": 3839,
+        "InformationState": 2428
+      },
+      "length_distribution": {
+        "25": 777,
+        "15": 131,
+        "20": 34,
+        "24": 46,
+        "18": 24,
+        "16": 42,
+        "17": 29,
+        "23": 39,
+        "21": 31,
+        "19": 25,
+        "22": 22
+      },
+      "source_games_used": 201,
+      "elapsed_seconds": 22.0
+    }
+  },
+  "elapsed_seconds": 1331.4
+}

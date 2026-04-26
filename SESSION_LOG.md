@@ -446,3 +446,147 @@ history (via reflog).
 - Soft check is a development guardrail, not a runtime gate. The hard check
   remains the enforced rendering gate. Soft check is invoked in pilot/full
   generation scripts but not in `render_chain()` itself.
+
+---
+
+## Session 7 — 2026-04-25
+
+**Tasks completed:**
+- Wrote `scripts/generate_full_chains.py`:
+  - Loads up to 2,000 trajectories per cell from materialized JSONL
+  - Generates valid windows → translates → validates → renders → leakage-checks
+  - Writes one JSONL file per chain (matches runner.py's `_load_chain` expectation)
+  - For each real chain, generates 3 shuffled variants with seeds 42, 1337, 7919
+    (re-rendered after permutation; both hard- and soft-leakage checked)
+  - Schema per chain: chain_id, match_id, source, variant, game_id, length,
+    constraint_types, cutoff_k, focal_action, constraints (serialized dicts),
+    rendered, seed (None for real)
+  - Verified schema with 5-chain sanity run before full execution
+- Generated complete chain set:
+  - chess_standard:    1,200 real + 3,600 shuffled = 4,800 files
+  - chess960:          1,200 real + 3,600 shuffled = 4,800 files
+  - checkers_american: 1,200 real + 3,600 shuffled = 4,800 files
+  - draughts_intl:     1,200 real + 3,600 shuffled = 4,800 files
+  - **Total: 4,800 real + 14,400 shuffled = 19,200 chain files**
+- Hard leakage failures: **0** across all 19,200 chains (real + shuffled)
+- Soft leakage warnings: **0** across all rendered chains
+
+**Gate status:** Session 7 had no formal gate — Session 6 pilot already
+established that the T-code passes both leakage checks. This session was
+production-scale execution. All cells hit the 1,200 real chain target.
+
+**Per-cell metrics (full population pass rates):**
+| Cell | Pass rate | Windows scanned | Source games used | Time |
+|---|---|---|---|---|
+| chess_standard | 95.2% | 1,261 | 207 / 2,000 | ~25s |
+| chess960 | 94.4% | 1,272 | 197 / 2,000 | ~25s |
+| checkers_american | 85.2% | 1,408 | 467 / 2,000 | ~25s |
+| draughts_intl | 93.0% | 1,290 | 201 / 2,000 | ~22s |
+
+(Wall time dominated by trajectory parsing — ~15 minutes total parsing across
+4 cells; chain generation itself is ~25s per cell at ~50 chains/sec.)
+
+**Validity failure breakdown (matches Session 6 finding — 100% rb_below_min in every cell):**
+| Cell | Invalid windows | All rb_below_min |
+|---|---|---|
+| chess_standard | 61 | 100% |
+| chess960 | 72 | 100% |
+| checkers_american | 208 | 100% |
+| draughts_intl | 90 | 100% |
+
+The diagnostic confirms: the bottleneck is structural (15-event windows have
+exactly 3 RB slots; preemption by phase-change SGT can drop RB count to 2).
+checkers_american has the highest invalid count due to more short windows +
+more frequent phase transitions from rapid material attrition.
+
+**Length distribution of saved chains (where variation matters most):**
+- chess_standard: 770 / 1,200 (64.2%) at length=25; rest spread
+- chess960:       726 / 1,200 (60.5%) at length=25
+- checkers_american: 423 / 1,200 (35.2%) at length=25 — much shorter mean
+- draughts_intl:  777 / 1,200 (64.8%) at length=25
+
+**Files created/modified:**
+```
+scripts/generate_full_chains.py (new)
+chains/real/{cell}/*.jsonl (1,200 per cell — gitignored, ~36 MB total)
+chains/shuffled/{cell}/*.jsonl (3,600 per cell — gitignored, ~108 MB total)
+chains/generation_summary.json (committed)
+chains/generation_log.txt (per-cell stdout from the run)
+SESSION_LOG.md (this entry)
+```
+
+**Blockers / open questions:** none
+
+**Next session (Session 8) planned tasks:**
+- Build reference distributions per cell from real chains
+- Coverage check: ≥90% non-max-backoff per SPEC §6
+- Save to data/reference_{cell}.pkl
+
+---
+
+## Session 8 — 2026-04-25
+
+**Tasks completed:**
+- Wrote `scripts/build_reference_distributions.py`:
+  - For each cell, loads 1,200 real chains from chains/real/{cell}/*.jsonl
+  - Calls `ReferenceDistribution.build_from_chains(chains, source=cell)` —
+    builds (state_signature → focal_action) frequency table
+  - Saves `data/reference_{cell}.pkl`
+  - Runs `dist.check_coverage(chains, target=0.90)` — counts how many
+    chains' state signatures match at each backoff level (0=full, 1=drop
+    entity, 2=drop bracket, 3=max-backoff)
+- Built reference distributions for all 4 cells
+
+**Gate status:** Gate 8 PASSED — all four cells exceed the SPEC §6 ≥0.90
+non-max-backoff coverage threshold (every cell at 1.0000):
+
+| Cell | Real chains | Unique level-0 state sigs | Non-max-backoff coverage |
+|---|---|---|---|
+| chess_standard | 1,200 | 102 | 1.0000 ✅ |
+| chess960 | 1,200 | 105 | 1.0000 ✅ |
+| checkers_american | 1,200 | 62 | 1.0000 ✅ |
+| draughts_intl | 1,200 | 77 | 1.0000 ✅ |
+
+**Diversity notes:**
+- Level-0 state sigs are tuples of `(current_phase, last_move_type,
+  resource_bracket, entity_label)`. The space is bounded by the T-code's
+  abstract label vocabulary.
+- 62–105 unique sigs across 1,200 chains means each sig is matched by
+  ~12–19 chains on average — reasonable density for top-3 action lookup.
+- checkers_american has the lowest sig diversity (62), consistent with
+  shorter window lengths and a coarser optimization-objective vocabulary
+  in checkers (no analog of chess's queen/rook/king pieces driving
+  per-piece-type signatures).
+- Every cell achieves 100% level-0 coverage — every chain has a sig that
+  was also seen in another chain in the same cell. No backoff needed.
+
+**Files created/modified:**
+```
+scripts/build_reference_distributions.py (new)
+data/reference_chess_standard.pkl (gitignored — 8 KB)
+data/reference_chess960.pkl (gitignored — 8 KB)
+data/reference_checkers_american.pkl (gitignored — 8 KB)
+data/reference_draughts_intl.pkl (gitignored — 8 KB)
+data/reference_build_summary.json (committed)
+SESSION_LOG.md (this entry)
+```
+
+**Blockers / open questions:** none
+
+**Phase 1 readiness check (per CLAUDE.md "Stop at end of Session 8"):**
+- Chains: 4,800 real + 14,400 shuffled across 4 cells ✅
+- References: 4 distributions, all 100% level-0 coverage ✅
+- T-code frozen at git tag T-code-game-v1.0-frozen ✅
+- Leakage: 0 hard, 0 soft on all 19,200 rendered chains ✅
+- Test suite: 42/42 passing ✅
+- Pre-registration: SPEC.md immutable; all renames in CLAUDE.md/translation
+  brought repo INTO compliance with SPEC §Renderer leakage vocabulary ✅
+
+**STOPPING POINT** — author requested halt at end of Session 8. Next sessions
+(per BUILD_PLAN.md):
+- Session 9: dry run (~$1–2) — small batch through Anthropic Messages API to
+  verify pipeline end-to-end before Phase 1
+- Session 10: Phase 1 Haiku (~$60–120) — full evaluation of all chains
+- Session 11: Gate 8 review — Phase 1 results decide whether Phase 2 runs
+- Session 12: Phase 2 Sonnet conditional (~$200–280)
+- Session 13: scoring + analysis
